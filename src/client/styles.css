@@ -72,7 +72,7 @@ input {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  padding: max(env(safe-area-inset-top, 0px), 48px) 8px max(env(safe-area-inset-bottom, 0px), 28px);
+  padding: max(env(safe-area-inset-top, 0px), 48px) 8px max(env(safe-area-inset-bottom, 0px), 44px);
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
@@ -738,34 +738,34 @@ input {
   }
 }
 
-/* ── Cards (+15% proportional scale with responsive mobile clamp) ── */
+/* ── Cards (Restored comfortable dimensions from web version) ── */
 .card {
   --accent: #ff9f1c;
-  width: clamp(94px, 14.5vh, 116px);
-  height: clamp(120px, 18.5vh, 154px);
-  border-radius: 13px;
+  width: 120px;
+  height: 168px;
+  border-radius: 14px;
   border: 2px solid var(--accent);
   background: linear-gradient(180deg, #24153f 0%, #120924 100%);
-  padding: 4px;
+  padding: 5px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.55);
   flex-shrink: 0;
   transition: transform 0.16s ease, box-shadow 0.16s ease;
   cursor: pointer;
   user-select: none;
 }
 .card-sm {
-  width: clamp(82px, 12.5vh, 104px);
-  height: clamp(96px, 15vh, 124px);
-  padding: 3px;
+  width: 92px;
+  height: 124px;
+  padding: 4px;
   border-radius: 11px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  gap: 2px;
+  gap: 3px;
   overflow: hidden;
 }
 .card.selected {
@@ -773,16 +773,15 @@ input {
   box-shadow: 0 8px 18px rgba(255, 159, 28, 0.55);
 }
 .card-title {
-  font-size: clamp(0.62rem, 1.2vh, 0.72rem);
+  font-size: 0.74rem;
   font-weight: 900;
-  line-height: 1.12;
+  line-height: 1.15;
   color: #fff;
   background: rgba(0, 0, 0, 0.55);
   padding: 2px 4px;
   border-radius: 6px;
   white-space: normal;
   word-break: normal;
-  overflow-wrap: break-word;
   text-align: center;
   min-height: 2.3em;
   display: flex;
@@ -791,13 +790,13 @@ input {
   flex-shrink: 0;
 }
 .card-sm .card-title {
-  font-size: clamp(0.56rem, 1.1vh, 0.66rem);
-  padding: 2px 4px;
-  line-height: 1.1;
+  font-size: 0.65rem;
+  font-weight: 900;
+  line-height: 1.12;
+  padding: 2px 3px;
   border-radius: 5px;
   white-space: normal;
   word-break: normal;
-  overflow-wrap: break-word;
   text-align: center;
   min-height: 2.3em;
   display: flex;
@@ -807,7 +806,7 @@ input {
 }
 .card-art {
   width: 100%;
-  height: clamp(48px, 8vh, 70px);
+  height: 84px;
   object-fit: cover;
   border-radius: 7px;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -822,8 +821,8 @@ input {
   border-radius: 6px;
 }
 .card-text {
-  font-size: clamp(0.52rem, 1.05vh, 0.62rem);
-  line-height: 1.12;
+  font-size: 0.62rem;
+  line-height: 1.14;
   color: #e4dbff;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -852,11 +851,11 @@ input {
   gap: 8px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 10px 6px 8px;
+  padding: 12px 6px 12px;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   flex-shrink: 0;
-  height: clamp(124px, 19.5vh, 158px);
+  height: 192px;
   box-sizing: border-box;
 }
 .hand.tight .card:not(:first-child) {
@@ -1794,7 +1793,7 @@ input {
   flex-direction: column;
   gap: 3px;
   margin-top: auto;
-  padding-bottom: 6px;
+  padding-bottom: 12px;
 }
 
 .my-player-bar {

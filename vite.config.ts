@@ -11,7 +11,7 @@ export default defineConfig({
         return html
           .replace(/type="module"\s+crossorigin/g, 'defer')
           .replace(/\s+crossorigin/g, '')
-          .replace('</head>', '    <link rel="stylesheet" href="./styles.css" />\n  </head>');
+          .replace('</head>', `    <link rel="stylesheet" href="./styles.css?v=${Date.now()}" />\n  </head>`);
       },
     },
   ],
