@@ -11,6 +11,28 @@
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
     <link rel="stylesheet" href="./styles.css" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+      (function() {
+        var tg = window.Telegram && window.Telegram.WebApp;
+        if (tg) {
+          try {
+            tg.ready();
+            tg.expand();
+            if (tg.requestFullscreen) tg.requestFullscreen();
+            tg.setHeaderColor('#120824');
+            tg.setBackgroundColor('#0e061c');
+            tg.enableClosingConfirmation();
+            var setAppH = function() {
+              var h = tg.viewportHeight || window.innerHeight;
+              document.documentElement.style.setProperty('--app-height', h + 'px');
+            };
+            setAppH();
+            tg.onEvent('viewportChanged', setAppH);
+            window.addEventListener('resize', setAppH);
+          } catch(e) {}
+        }
+      })();
+    </script>
     <title>Скажені Єноти: Нічний Дожор</title>
   </head>
   <body style="margin:0;background:#0e071b;color:#f7f4ff">

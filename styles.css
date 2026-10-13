@@ -27,9 +27,10 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100dvh;
-  min-height: 100dvh;
-  max-height: 100dvh;
+  height: 100%;
+  height: var(--app-height, 100dvh);
+  min-height: var(--app-height, 100dvh);
+  max-height: var(--app-height, 100dvh);
   overflow: hidden;
   overscroll-behavior: none;
   touch-action: manipulation;
@@ -48,8 +49,9 @@ body {
 
 #root {
   width: 100%;
-  height: 100dvh;
-  max-height: 100dvh;
+  height: 100%;
+  height: var(--app-height, 100dvh);
+  max-height: var(--app-height, 100dvh);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -64,12 +66,13 @@ input {
 .app {
   max-width: 480px;
   width: 100%;
-  height: 100dvh;
-  max-height: 100dvh;
+  height: 100%;
+  height: var(--app-height, 100dvh);
+  max-height: var(--app-height, 100dvh);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  padding: env(safe-area-inset-top, 4px) 10px env(safe-area-inset-bottom, 6px);
+  padding: env(safe-area-inset-top, 2px) 8px max(env(safe-area-inset-bottom, 4px), 8px);
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
@@ -418,8 +421,8 @@ input {
 
 .opponents {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(68px, 1fr));
-  gap: 5px;
+  grid-template-columns: repeat(auto-fit, minmax(62px, 1fr));
+  gap: 4px;
   justify-content: center;
   flex-shrink: 0;
 }
@@ -428,12 +431,12 @@ input {
   --pcolor: #38bdf8;
   background: linear-gradient(180deg, color-mix(in srgb, var(--pcolor) 14%, rgba(22, 11, 42, 0.9)), rgba(16, 8, 32, 0.94));
   border: 1.5px solid color-mix(in srgb, var(--pcolor) 48%, rgba(255, 255, 255, 0.14));
-  border-radius: 13px;
-  padding: 4px 3px 2px;
+  border-radius: 11px;
+  padding: 2px 2px 1px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
   position: relative;
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -441,7 +444,7 @@ input {
   border-color: var(--pcolor);
   box-shadow:
     0 0 0 1.5px var(--pcolor),
-    0 0 14px color-mix(in srgb, var(--pcolor) 68%, transparent);
+    0 0 12px color-mix(in srgb, var(--pcolor) 68%, transparent);
 }
 .opp.pickable {
   border-color: var(--neon-cyan);
@@ -457,16 +460,16 @@ input {
   border-color: #64748b;
 }
 .opp-avatar {
-  width: clamp(40px, 6.4vh, 54px);
-  height: clamp(40px, 6.4vh, 54px);
+  width: clamp(34px, 5.2vh, 46px);
+  height: clamp(34px, 5.2vh, 46px);
   aspect-ratio: 1 / 1;
-  border-radius: 11px;
+  border-radius: 9px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--pcolor);
+  border: 1.5px solid var(--pcolor);
   background: color-mix(in srgb, var(--pcolor) 22%, #130726);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--pcolor) 50%, transparent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--pcolor) 50%, transparent);
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
@@ -475,25 +478,25 @@ input {
   width: 100%;
   height: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 8px;
+  border-radius: 7px;
   object-fit: cover;
 }
 .badge-off,
 .badge-bot {
   font-style: normal;
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   position: absolute;
-  right: 2px;
-  bottom: 2px;
+  right: 1px;
+  bottom: 1px;
   background: rgba(15, 6, 30, 0.92);
-  border-radius: 5px;
-  padding: 1px 3px;
+  border-radius: 4px;
+  padding: 1px 2px;
   border: 1px solid rgba(255, 255, 255, 0.25);
   line-height: 1;
   z-index: 2;
 }
 .opp-name {
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 800;
   color: var(--pcolor);
   max-width: 100%;
@@ -502,32 +505,32 @@ input {
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
 }
 .opp-cards {
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   color: #fff;
   font-weight: 800;
 }
 .opp-target {
   position: absolute;
-  top: 3px;
-  right: 3px;
+  top: 2px;
+  right: 2px;
 }
 
 /* ── Center Table (Card Back Deck + Discard) ── */
 .table {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
-  padding: 8px 10px;
-  border-radius: 18px;
+  padding: 4px 8px;
+  border-radius: 15px;
   background: radial-gradient(circle at 50% 50%, rgba(160, 107, 255, 0.16), rgba(16, 9, 30, 0.85));
   border: 1.5px solid rgba(160, 107, 255, 0.35);
-  flex: 1;
-  min-height: 0;
-  max-height: clamp(120px, 22vh, 165px);
+  flex-shrink: 0;
+  height: clamp(86px, 14.5vh, 118px);
+  max-height: clamp(86px, 14.5vh, 118px);
 }
 
 .deck-wrap {
@@ -538,11 +541,11 @@ input {
 
 .deck-card-stack {
   position: relative;
-  height: clamp(105px, 18.5vh, 146px);
-  width: calc(clamp(105px, 18.5vh, 146px) * 0.71);
+  height: clamp(80px, 13.5vh, 108px);
+  width: calc(clamp(80px, 13.5vh, 108px) * 0.71);
   padding: 0;
   border: none;
-  border-radius: 14px;
+  border-radius: 12px;
   background: transparent;
   cursor: pointer;
   transition: transform 0.16s ease, filter 0.16s ease;
@@ -552,19 +555,19 @@ input {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 14px;
+  border-radius: 12px;
   background: #1c0c36;
-  border: 2px solid rgba(255, 159, 28, 0.45);
+  border: 1.5px solid rgba(255, 159, 28, 0.45);
   z-index: 0;
 }
 .deck-card-stack::before {
-  transform: translate(5px, 5px) rotate(3deg);
+  transform: translate(3px, 3px) rotate(2deg);
 }
 .deck-card-stack::after {
-  transform: translate(2.5px, 2.5px) rotate(1.5deg);
+  transform: translate(1.5px, 1.5px) rotate(1deg);
 }
 .deck-card-stack.ready {
-  filter: drop-shadow(0 0 16px rgba(255, 159, 28, 0.65));
+  filter: drop-shadow(0 0 14px rgba(255, 159, 28, 0.65));
   animation: pulse 0.9s infinite alternate;
 }
 .deck-card-stack:disabled {
@@ -577,21 +580,21 @@ input {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 14px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.65);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.65);
 }
 .deck-badge-top {
   position: absolute;
   z-index: 2;
-  top: -8px;
+  top: -7px;
   left: 50%;
   transform: translateX(-50%);
   background: #140726;
   border: 1.5px solid var(--neon-orange);
   color: #fff;
   font-weight: 900;
-  font-size: 0.75rem;
-  padding: 1px 8px;
+  font-size: 0.72rem;
+  padding: 1px 7px;
   border-radius: 999px;
   white-space: nowrap;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
@@ -599,15 +602,15 @@ input {
 .deck-badge-bottom {
   position: absolute;
   z-index: 2;
-  bottom: -8px;
+  bottom: -7px;
   left: 50%;
   transform: translateX(-50%);
   background: #140726;
   border: 1.5px solid var(--neon-cyan);
   color: var(--text);
   font-weight: 800;
-  font-size: 0.75rem;
-  padding: 1px 8px;
+  font-size: 0.72rem;
+  padding: 1px 7px;
   border-radius: 999px;
   white-space: nowrap;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
@@ -619,7 +622,7 @@ input {
 }
 
 .discard {
-  height: clamp(105px, 18.5vh, 146px);
+  height: clamp(80px, 13.5vh, 108px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -627,21 +630,22 @@ input {
 }
 .discard-card {
   position: absolute;
-}
-.discard-card {
-  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .center-feed {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
+  flex-shrink: 0;
 }
 
 .status-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .status {
@@ -649,9 +653,9 @@ input {
   margin: 0;
   text-align: center;
   font-weight: 800;
-  font-size: 0.9rem;
-  padding: 7px 10px;
-  border-radius: 12px;
+  font-size: clamp(0.72rem, 1.4vh, 0.82rem);
+  padding: 4px 8px;
+  border-radius: 9px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
@@ -661,15 +665,15 @@ input {
   text-align: left;
   background: rgba(14, 7, 27, 0.78);
   border: 1px solid rgba(160, 107, 255, 0.3);
-  border-radius: 12px;
-  padding: 7px 11px;
+  border-radius: 9px;
+  padding: 3px 8px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
   cursor: pointer;
 }
 .center-log-line {
-  font-size: 0.76rem;
+  font-size: clamp(0.66rem, 1.25vh, 0.72rem);
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
@@ -684,11 +688,12 @@ input {
 .pending {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  border-radius: 16px;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 14px;
   background: rgba(255, 45, 149, 0.14);
   border: 1.5px solid var(--neon-pink);
+  flex-shrink: 0;
 }
 .pending-card {
   position: relative;
@@ -700,20 +705,20 @@ input {
   align-items: center;
   justify-content: center;
   font-weight: 900;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #fff;
   background: rgba(255, 0, 68, 0.65);
-  border-radius: 12px;
+  border-radius: 10px;
   transform: rotate(-12deg);
 }
 .pending-side {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 .timer {
-  height: 7px;
+  height: 6px;
   background: rgba(255, 255, 255, 0.15);
   border-radius: 999px;
   overflow: hidden;
@@ -735,96 +740,112 @@ input {
 /* ── Cards (+15% proportional scale with responsive mobile clamp) ── */
 .card {
   --accent: #ff9f1c;
-  width: clamp(86px, 14.5vh, 118px);
-  height: clamp(122px, 20.5vh, 166px);
-  border-radius: 14px;
+  width: clamp(74px, 12vh, 98px);
+  height: clamp(106px, 17.5vh, 142px);
+  border-radius: 12px;
   border: 2px solid var(--accent);
   background: linear-gradient(180deg, #24153f 0%, #120924 100%);
-  padding: 4px;
+  padding: 3px 3px 4px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   text-align: center;
-  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.55);
   flex-shrink: 0;
   transition: transform 0.16s ease, box-shadow 0.16s ease;
   cursor: pointer;
   user-select: none;
 }
 .card-sm {
-  width: clamp(70px, 11.5vh, 90px);
-  height: clamp(98px, 16vh, 126px);
+  width: clamp(56px, 9.5vh, 76px);
+  height: clamp(78px, 13vh, 104px);
   padding: 3px;
-  border-radius: 12px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 2px;
+  overflow: hidden;
 }
 .card.selected {
-  transform: translateY(-12px) scale(1.04);
-  box-shadow: 0 10px 22px rgba(255, 159, 28, 0.55);
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 8px 18px rgba(255, 159, 28, 0.55);
 }
 .card-title {
-  font-size: clamp(0.64rem, 1.35vh, 0.74rem);
+  font-size: clamp(0.58rem, 1.2vh, 0.68rem);
   font-weight: 900;
   line-height: 1.1;
   color: #fff;
-  background: rgba(0, 0, 0, 0.45);
-  padding: 2px 4px;
-  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 3px;
+  border-radius: 5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 .card-sm .card-title {
-  font-size: clamp(0.56rem, 1.2vh, 0.65rem);
+  font-size: clamp(0.52rem, 1.1vh, 0.62rem);
+  padding: 1px 3px;
+  line-height: 1.1;
+  border-radius: 4px;
 }
 .card-art {
   width: 100%;
-  height: clamp(52px, 9.2vh, 80px);
+  height: clamp(44px, 7.5vh, 65px);
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
 }
 .card-sm .card-art {
-  height: clamp(42px, 7.2vh, 62px);
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
 }
 .card-text {
-  font-size: clamp(0.58rem, 1.2vh, 0.66rem);
+  font-size: clamp(0.52rem, 1.05vh, 0.62rem);
   line-height: 1.12;
   color: #e4dbff;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 /* ── Hand & Actionbar ── */
 .actionbar {
-  min-height: 38px;
+  min-height: 34px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   flex-shrink: 0;
 }
 .sel-rule {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--muted);
   text-align: center;
 }
 
 .hand {
   display: flex;
-  gap: 8px;
+  gap: 7px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 14px 6px 4px;
+  padding: 10px 4px 4px;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   flex-shrink: 0;
-  height: clamp(124px, 21vh, 170px);
+  height: clamp(114px, 18.5vh, 150px);
   box-sizing: border-box;
 }
 .hand.tight .card:not(:first-child) {
-  margin-left: -18px;
+  margin-left: -16px;
 }
 
 /* ── Modals (Centrally positioned fixed overlays) ── */
@@ -1764,30 +1785,30 @@ input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 10px;
-  border-radius: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
   background: linear-gradient(90deg, color-mix(in srgb, var(--pcolor) 16%, rgba(20, 10, 40, 0.85)), rgba(20, 10, 40, 0.75));
   border: 1px solid color-mix(in srgb, var(--pcolor) 45%, transparent);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
 }
 
 .my-player-id {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .my-avatar-ring {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   aspect-ratio: 1 / 1;
-  border-radius: 9px;
+  border-radius: 7px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--pcolor);
+  border: 1.5px solid var(--pcolor);
   background: color-mix(in srgb, var(--pcolor) 20%, #120724);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--pcolor) 50%, transparent);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--pcolor) 50%, transparent);
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -1795,7 +1816,7 @@ input {
   width: 100%;
   height: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 7px;
+  border-radius: 6px;
   object-fit: cover;
 }
 

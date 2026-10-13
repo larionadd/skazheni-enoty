@@ -47,6 +47,8 @@ interface TelegramWebAppType {
     notificationOccurred(type: 'error' | 'success' | 'warning'): void;
     selectionChanged(): void;
   };
+  requestFullscreen?(): void;
+  onEvent?(eventType: string, eventHandler: () => void): void;
 }
 
 declare global {
@@ -73,9 +75,22 @@ export function initTelegramWebApp(): void {
   try {
     tg.ready();
     tg.expand();
+    if (typeof tg.requestFullscreen === 'function') {
+      tg.requestFullscreen();
+    }
     tg.setHeaderColor('#120824');
     tg.setBackgroundColor('#0e061c');
     tg.enableClosingConfirmation();
+
+    const updateHeight = () => {
+      const h = tg.viewportHeight || window.innerHeight;
+      document.documentElement.style.setProperty('--app-height', `${h}px`);
+    };
+    updateHeight();
+    if (typeof tg.onEvent === 'function') {
+      tg.onEvent('viewportChanged', updateHeight);
+    }
+    window.addEventListener('resize', updateHeight);
   } catch (err) {
     console.warn('Telegram WebApp init warning:', err);
   }
