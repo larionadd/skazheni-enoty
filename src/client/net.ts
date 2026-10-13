@@ -23,15 +23,15 @@ const SESSION_KEY = 'enoty.session';
 
 export function loadSession(): Session | null {
   try {
-    return JSON.parse(localStorage.getItem(SESSION_KEY) ?? 'null');
+    return JSON.parse(sessionStorage.getItem(SESSION_KEY) ?? 'null');
   } catch {
     return null;
   }
 }
 export function saveSession(s: Session | null) {
   try {
-    if (s) localStorage.setItem(SESSION_KEY, JSON.stringify(s));
-    else localStorage.removeItem(SESSION_KEY);
+    if (s) sessionStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    else sessionStorage.removeItem(SESSION_KEY);
   } catch {
     /* ignore */
   }
