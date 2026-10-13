@@ -1,4 +1,4 @@
-const CACHE = 'enoty-v3';
+const CACHE = 'enoty-v4';
 
 self.addEventListener('install', () => {
   self.skipWaiting();

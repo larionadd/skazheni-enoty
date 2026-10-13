@@ -127,9 +127,9 @@ export function createGame(players: NewPlayer[], opts: Partial<GameOptions> = {}
 
   state.nextId = nextId;
   state.current = Math.floor(Math.random() * n);
-  addLog(state, `🦝 Нічний дожір почався! У всіх по 1 Килимку та ${o.handSize} карт.`);
-  addLog(state, `🧨 У колоді заховано Петард: ${n - 1} шт.`);
-  addLog(state, `🐾 Першим ходить ${currentPlayer(state).name}!`);
+  addLog(state, `Нічний дожір почався! У всіх по 1 Килимку та ${o.handSize} карт.`);
+  addLog(state, `У колоді заховано Петард: ${n - 1} шт.`);
+  addLog(state, `Першим ходить ${currentPlayer(state).name}!`);
   emit(state, { kind: 'turn', player: currentPlayer(state).id, turns: 1 });
   return state;
 }
@@ -191,7 +191,7 @@ function advance(s: GameState, turns: number) {
   s.turnsLeft = turns;
   const p = currentPlayer(s);
   emit(s, { kind: 'turn', player: p.id, turns });
-  if (turns > 1) addLog(s, `⚠️ ${p.name} має ходити ${turns} рази поспіль!`);
+  if (turns > 1) addLog(s, `${p.name} має ходити ${turns} рази поспіль!`);
 }
 
 function endOneTurn(s: GameState) {
@@ -220,7 +220,7 @@ function checkWinner(s: GameState): boolean {
     s.defuse = null;
     s.winner = alive[0]?.id ?? null;
     if (s.winner) {
-      addLog(s, `🏆 ${nameOf(s, s.winner)} — король сміттєвого бака!`);
+      addLog(s, `${nameOf(s, s.winner)} — переможець нічного дожору!`);
       emit(s, { kind: 'winner', player: s.winner });
     }
     return true;
@@ -314,7 +314,7 @@ export function playNope(s: GameState, pid: string, now: number): string | null 
   pend.lastNopeBy = pid;
   setNopeDeadline(s, now);
   emit(s, { kind: 'noped', by: pid, nopes: pend.nopes });
-  addLog(s, `🛑 ${p.name}: «${pend.nopes % 2 ? 'Моє! Не руш!' : 'А от і ні — руш!'}»`);
+  addLog(s, `${p.name}: «${pend.nopes % 2 ? 'Моє! Не руш!' : 'А от і ні — руш!'}»`);
   return null;
 }
 
@@ -326,7 +326,7 @@ export function tick(s: GameState, now: number): boolean {
   const cancelled = pend.nopes % 2 === 1;
   emit(s, { kind: 'resolved', by: pend.by, type: pend.type, cancelled });
   if (cancelled) {
-    addLog(s, `❌ «${CARD_DEFS[pend.type].title}» скасовано.`);
+    addLog(s, `«${CARD_DEFS[pend.type].title}» скасовано.`);
     return true;
   }
   resolve(s, pend);
@@ -345,35 +345,35 @@ function resolve(s: GameState, pend: PendingAction) {
     actor.hand = [...actor.hand, card];
     emit(s, { kind: 'gotCard', card: card.type, cardId: card.id, from: t.id, reason: 'steal', to: [actor.id] });
     emit(s, { kind: 'lostCard', card: card.type, taker: actor.id, reason: 'steal', to: [t.id] });
-    addLog(s, `🫳 ${actor.name} поцупив карту в ${t.name}.`);
+    addLog(s, `${actor.name} поцупив карту в ${t.name}.`);
     return;
   }
   switch (pend.type) {
     case 'blame': {
       const turns = s.turnsLeft > 1 ? s.turnsLeft + 2 : 2;
-      addLog(s, `👉 ${actor.name} переводить стрілки!`);
+      addLog(s, `${actor.name} переводить стрілки на наступного!`);
       advance(s, turns);
       break;
     }
     case 'bush':
-      addLog(s, `🌿 ${actor.name} шмигнув у кущі.`);
+      addLog(s, `${actor.name} шмигнув у кущі.`);
       endOneTurn(s);
       break;
     case 'radar':
       emit(s, { kind: 'future', cards: s.deck.slice(0, 3).map((c) => c.type), to: [actor.id] });
-      addLog(s, `👃 ${actor.name} винюхує верхні карти колоди…`);
+      addLog(s, `${actor.name} винюхує верхні карти колоди…`);
       break;
     case 'shuffle':
       shuffleInPlace(s.deck);
       emit(s, { kind: 'shuffled', by: actor.id });
-      addLog(s, `🌪️ ${actor.name} перетасував колоду!`);
+      addLog(s, `${actor.name} перетасував колоду!`);
       break;
     case 'favor': {
       const t = findPlayer(s, pend.target!)!;
       if (!t.alive || t.hand.length === 0) return;
       s.phase = 'favor';
       s.favor = { giver: t.id, receiver: actor.id };
-      addLog(s, `🥺 ${t.name} має поділитися ничкою з ${actor.name}.`);
+      addLog(s, `${t.name} має поділитися ничкою з ${actor.name}.`);
       break;
     }
     default:
@@ -391,7 +391,7 @@ export function giveFavor(s: GameState, pid: string, cardId: number): string | n
   receiver.hand = [...receiver.hand, taken[0]];
   emit(s, { kind: 'gotCard', card: taken[0].type, cardId: taken[0].id, from: giver.id, reason: 'favor', to: [receiver.id] });
   emit(s, { kind: 'lostCard', card: taken[0].type, taker: receiver.id, reason: 'favor', to: [giver.id] });
-  addLog(s, `🎁 ${giver.name} віддав карту ${receiver.name}.`);
+  addLog(s, `${giver.name} віддав карту гравцю ${receiver.name}.`);
   s.favor = null;
   s.phase = 'turn';
   return null;
@@ -410,7 +410,7 @@ export function drawCard(s: GameState, pid: string): string | null {
     p.hand = [...p.hand, card];
     emit(s, { kind: 'gotCard', card: card.type, cardId: card.id, reason: 'draw', to: [pid] });
     const more = s.turnsLeft > 1 ? ` (ще ходів: ${s.turnsLeft - 1})` : ' і завершив хід';
-    addLog(s, `🂠 ${p.name} взяв карту з колоди${more}.`);
+    addLog(s, `${p.name} взяв карту з колоди${more}.`);
     endOneTurn(s);
     return null;
   }
@@ -422,12 +422,12 @@ export function drawCard(s: GameState, pid: string): string | null {
     s.phase = 'defuse';
     s.defuse = { playerId: pid, card };
     emit(s, { kind: 'exploded', by: pid, saved: true });
-    addLog(s, `🧨 ${p.name} витягнув Петарду… але прикинувся Килимком!`);
+    addLog(s, `${p.name} витягнув Петарду… але прикинувся Килимком!`);
     return null;
   }
 
   emit(s, { kind: 'exploded', by: pid, saved: false });
-  addLog(s, `💥 БАХ! ${p.name} вилітає з дожору!`);
+  addLog(s, `БАХ! ${p.name} вилітає з дожору!`);
   eliminate(s, p);
   s.discard.push(card);
   if (!checkWinner(s)) advance(s, 1);
@@ -442,7 +442,7 @@ export function placePetard(s: GameState, pid: string, position: number): string
   s.deck.splice(pos, 0, s.defuse.card);
   s.defuse = null;
   s.phase = 'turn';
-  addLog(s, `🤫 ${nameOf(s, pid)} таємно сховав Петарду назад у бак.`);
+  addLog(s, `${nameOf(s, pid)} таємно сховав Петарду назад у бак.`);
   endOneTurn(s);
   return null;
 }
@@ -464,7 +464,7 @@ export function forfeit(s: GameState, pid: string): void {
   }
   if (s.pending?.by === pid) s.pending = null;
 
-  addLog(s, `🚪 ${p.name} покинув дожір.`);
+  addLog(s, `${p.name} покинув дожір.`);
   eliminate(s, p);
   if (checkWinner(s)) return;
   if (wasCurrent) advance(s, 1);

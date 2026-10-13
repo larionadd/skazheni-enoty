@@ -133,18 +133,22 @@ export function App() {
             break;
           }
           case 'lostCard':
-            toast(`😿 ${nameOf(e.taker)} забрав твою «${CARD_DEFS[e.card].title}»`, 'bad');
+            toast(`Гравець ${nameOf(e.taker)} поцупив твою «${CARD_DEFS[e.card].title}»`, 'bad');
             break;
           case 'exploded': {
             const eKey = Date.now();
-            setBoom({ by: e.by, saved: e.saved, key: eKey, isMe: e.by === me });
+            const isMe = e.by === me;
+            setBoom({ by: e.by, saved: e.saved, key: eKey, isMe });
             if (e.saved) sfx.saved();
             else sfx.boom();
-            setTimeout(() => setBoom((curr) => (curr?.key === eKey ? null : curr)), 3200);
+            if (isMe) {
+              startDrawReveal('petard', undefined, 'НЕБЕЗПЕКА! ПЕТАРДА В БАКУ!');
+            }
+            setTimeout(() => setBoom((curr) => (curr?.key === eKey ? null : curr)), 3400);
             break;
           }
           case 'shuffled':
-            toast(`🌪️ ${nameOf(e.by)} перемішав колоду`);
+            toast(`Колоду перемішано (${nameOf(e.by)})`);
             break;
           case 'turn':
             if (e.player === me) sfx.turn();

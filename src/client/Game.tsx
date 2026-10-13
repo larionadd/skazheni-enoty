@@ -2,6 +2,21 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNod
 import { CARD_DEFS, PLAYER_COLORS, type CardType } from '../shared/cards.ts';
 import type { Card } from '../shared/engine.ts';
 import type { ClientAction, MemberView, RoomView } from '../shared/protocol.ts';
+import {
+  IconBomb,
+  IconBot,
+  IconCard,
+  IconCrown,
+  IconDefuse,
+  IconDice,
+  IconNope,
+  IconOffline,
+  IconRadar,
+  IconRules,
+  IconSkull,
+  IconTarget,
+  IconTrophy,
+} from './icons.tsx';
 import { RulesModal } from './RulesModal.tsx';
 import { AvatarImg, CardFace, Modal } from './ui.tsx';
 
@@ -136,14 +151,14 @@ export function Game({
   const canNope = !!p && alive && hasNope && p.lastNopeBy !== me && !(p.nopes === 0 && p.by === me);
 
   let status: string;
-  if (g.phase === 'over') status = `🏆 Переміг ${name(g.winner ?? undefined)}!`;
+  if (g.phase === 'over') status = `Переміг ${name(g.winner ?? undefined)}!`;
   else if (p) status = `${name(p.by)}: «${CARD_DEFS[p.type].title}»${p.target ? ` → ${name(p.target)}` : ''}`;
   else if (g.phase === 'favor')
     status = g.favor?.giver === me ? 'Віддай одну карту!' : `${name(g.favor?.giver)} обирає карту для ${name(g.favor?.receiver)}…`;
   else if (g.phase === 'defuse')
     status = g.defuse?.playerId === me ? 'Сховай Петарду!' : `${name(g.defuse?.playerId)} таємно ховає Петарду…`;
   else if (myTurn)
-    status = targeting ? '👆 Обери суперника вгорі' : `Твій хід${g.turnsLeft > 1 ? ` (ходів: ${g.turnsLeft})` : ''}: грай карти або тягни`;
+    status = targeting ? 'Обери суперника вгорі' : `Твій хід${g.turnsLeft > 1 ? ` (ходів: ${g.turnsLeft})` : ''}: грай карти або тягни`;
   else status = `Ходить ${name(g.current)}${g.turnsLeft > 1 ? ` (ходів: ${g.turnsLeft})` : ''}…`;
 
   const chance = g.deckCount ? Math.round((g.petardsInDeck / g.deckCount) * 100) : 0;
@@ -169,16 +184,24 @@ export function Game({
             >
               <span className="opp-avatar">
                 <AvatarImg src={m.avatar} dead={m.alive === false} />
-                {!m.connected && !m.isBot && <i className="badge-off">📵</i>}
-                {m.isBot && <i className="badge-bot">🤖</i>}
+                {!m.connected && !m.isBot && (
+                  <span className="badge-off" title="Офлайн"><IconOffline size={12} /></span>
+                )}
+                {m.isBot && (
+                  <span className="badge-bot" title="Бот"><IconBot size={12} /></span>
+                )}
               </span>
               <span className="opp-name">
                 <i className="p-dot" aria-hidden />
                 {m.name}
               </span>
-              <span className="opp-cards">🂠 {m.cardCount ?? 0}</span>
+              <span className="opp-cards">
+                <IconCard size={12} /> {m.cardCount ?? 0}
+              </span>
               {isTurn && !g.pending && <span className="opp-thinking">думає…</span>}
-              {g.pending?.target === m.id && <span className="opp-target">🎯</span>}
+              {g.pending?.target === m.id && (
+                <span className="opp-target" title="Ціль"><IconTarget size={18} /></span>
+              )}
             </button>
           );
         })}
@@ -198,8 +221,12 @@ export function Game({
             aria-label={`Тягнути карту з колоди. Залишилось карт: ${g.deckCount}, шанс петарди: ${chance}%`}
           >
             <img className="deck-back-img" src="cards/back.webp" alt="Колода карт" draggable={false} />
-            <span className="deck-badge-top">{g.deckCount} карт</span>
-            <span className={`deck-badge-bottom${chance >= 30 ? ' hot' : ''}`}>🧨 {chance}%</span>
+            <span className="deck-badge-top">
+              <IconCard size={11} /> {g.deckCount} карт
+            </span>
+            <span className={`deck-badge-bottom${chance >= 30 ? ' hot' : ''}`}>
+              <IconBomb size={11} /> {chance}%
+            </span>
           </button>
           {botDrawBy && (
             <div key={botDrawBy.key} className="bot-draw-fly" style={{ '--pcolor': colorOf(botDrawBy.by) } as CSSProperties} aria-hidden>
@@ -229,7 +256,7 @@ export function Game({
             {renderColoredText(status, view.members)}
           </p>
           <button className="icon-btn" aria-label="Правила гри" title="Правила гри" onClick={() => setRulesOpen(true)}>
-            📖
+            <IconRules size={18} />
           </button>
         </div>
 
@@ -255,7 +282,7 @@ export function Game({
             </div>
             {canNope ? (
               <button className="btn btn-nope" onClick={() => act({ t: 'nope' })}>
-                🛑 {p.nopes % 2 ? 'А от і ні!' : 'Моє! Не руш!'}
+                <IconNope size={16} /> {p.nopes % 2 ? 'А от і ні!' : 'Моє! Не руш!'}
               </button>
             ) : (
               <span className="muted small">{p.nopes % 2 ? 'Скасовано… поки що' : 'Хтось скаже «Ні»?'}</span>
@@ -264,7 +291,11 @@ export function Game({
         </section>
       )}
 
-      {!alive && g.phase !== 'over' && <p className="spectator">💥 Ти вилетів. Дивись, хто стане королем ночі!</p>}
+      {!alive && g.phase !== 'over' && (
+        <p className="spectator">
+          <IconSkull size={18} /> Ти вибув. Спостерігай, хто переможе в дожорі!
+        </p>
+      )}
 
       {/* Action bar */}
       {selDef && (
@@ -279,7 +310,7 @@ export function Game({
               </button>
             ) : (
               <button className="btn btn-primary" disabled={!playable} onClick={play}>
-                {selCards.length === 2 ? '🫳 Вкрасти парою' : selDef.pair ? 'Потрібна пара однакових' : '▶ Зіграти'}
+                {selCards.length === 2 ? 'Вкрасти парою' : selDef.pair ? 'Потрібна пара однакових' : 'Зіграти'}
               </button>
             )}
           </div>
@@ -299,7 +330,9 @@ export function Game({
                 {meM.name} (ти)
               </span>
             </span>
-            <span className="my-card-count">🂠 Карт у руці: {hand.length}</span>
+            <span className="my-card-count">
+              <IconCard size={13} /> Карт у руці: {hand.length}
+            </span>
           </div>
         )}
         <section ref={handRef} className={`hand${hand.length > 6 ? ' tight' : ''}`} aria-label="Твої карти">
@@ -341,8 +374,8 @@ export function Game({
       )}
 
       {/* ── Dialogs ── */}
-      <Modal open={g.phase === 'favor' && g.favor?.giver === me} title={`🥺 ${name(g.favor?.receiver)} просить поділитися`} mandatory>
-        <p className="muted">Обери карту, яку віддаси:</p>
+      <Modal open={g.phase === 'favor' && g.favor?.giver === me} title={<span className="modal-title-with-icon"><IconCard size={20} /> {name(g.favor?.receiver)} просить карту</span>} mandatory>
+        <p className="muted">Обери карту зі своєї руки, яку віддаси:</p>
         <div className="grid">
           {hand.map((c) => (
             <CardFace key={c.id} type={c.type} size="sm" onClick={() => act({ t: 'favor', cardId: c.id })} />
@@ -350,9 +383,9 @@ export function Game({
         </div>
       </Modal>
 
-      {g.phase === 'defuse' && g.defuse?.playerId === me && <DefuseDialog deckCount={g.deckCount} act={act} />}
+      {g.phase === 'defuse' && g.defuse?.playerId === me && !boom && <DefuseDialog deckCount={g.deckCount} act={act} />}
 
-      <Modal open={!!future} onClose={clearFuture} title="👃 Нюх-Радар: верх колоди">
+      <Modal open={!!future} onClose={clearFuture} title={<span className="modal-title-with-icon"><IconRadar size={20} /> Нюх-Радар: верх колоди</span>}>
         <div className="future">
           {future?.map((t, i) => (
             <div key={i} className="future-slot">
@@ -363,15 +396,27 @@ export function Game({
           {future?.length === 0 && <p>Колода порожня!</p>}
         </div>
         <button className="btn btn-primary" onClick={clearFuture}>
-          Запам’ятав 🤫
+          Запам’ятав
         </button>
       </Modal>
 
-      <Modal open={g.phase === 'over'} title={g.winner === me ? '🏆 Ти переміг!' : `🏆 Переміг ${name(g.winner ?? undefined)}`} mandatory>
-        <p className="big-emoji">{g.winner === me ? '👑🦝' : '💥😿'}</p>
+      <Modal open={g.phase === 'over' && !boom} title={<span className="modal-title-with-icon"><IconTrophy size={22} /> {g.winner === me ? 'Ти переміг!' : `Переміг ${name(g.winner ?? undefined)}!`}</span>} mandatory>
+        <div className="game-over-hero">
+          <div className="game-over-avatar-wrap">
+            <AvatarImg src={byId.get(g.winner ?? '')?.avatar} />
+            {g.winner === me && (
+              <span className="game-over-crown">
+                <IconCrown size={32} />
+              </span>
+            )}
+          </div>
+          <p className="game-over-tagline">
+            {g.winner === me ? 'Король Нічного Дожору!' : `Вітаємо переможця ${name(g.winner ?? undefined)}!`}
+          </p>
+        </div>
         {view.hostId === me ? (
           <button className="btn btn-primary btn-big" onClick={() => act({ t: 'restart' })}>
-            🔁 Ще раунд
+            Ще раунд
           </button>
         ) : (
           <p className="muted">Господар може почати новий раунд.</p>
@@ -383,7 +428,7 @@ export function Game({
 
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
 
-      <Modal open={logOpen} onClose={() => setLogOpen(false)} title="📜 Повний журнал ходів" className="tall">
+      <Modal open={logOpen} onClose={() => setLogOpen(false)} title={<span className="modal-title-with-icon"><IconRules size={20} /> Повний журнал ходів</span>} className="tall">
         <ol className="log">
           {[...g.log].reverse().map((l, i) => (
             <li key={i}>{renderColoredText(l, view.members)}</li>
@@ -408,13 +453,13 @@ export function Game({
           <div className="comic-boom-content">
             {/* Pop-art Comic BOOM Graphic */}
             <div className="comic-boom-graphic-box">
-              <img src="boom.webp" alt="BOOM!" className="comic-boom-art" draggable={false} />
+              <img src="./boom.webp" alt="BOOM!" className="comic-boom-art" draggable={false} />
               <div className="comic-burst-words" aria-hidden>
                 <span className="comic-word w1">КА-БУУМ!</span>
                 <span className="comic-word w2">БА-БАХ!</span>
-                <span className="comic-word w3">💥</span>
-                <span className="comic-word w4">⚡</span>
-                <span className="comic-word w5">🧨</span>
+                <span className="comic-word w3">ТРАХ!</span>
+                <span className="comic-word w4">ШМЯК!</span>
+                <span className="comic-word w5">БАМ!</span>
               </div>
             </div>
 
@@ -438,19 +483,23 @@ export function Game({
               <div className="comic-boom-badge-row">
                 {boom.saved ? (
                   <div className="comic-banner-badge saved-badge">
-                    <span className="badge-title">🫓 ПРИКИНУВСЯ КИЛИМКОМ!</span>
+                    <span className="badge-title">
+                      <IconDefuse size={18} /> ПРИКИНУВСЯ КИЛИМКОМ!
+                    </span>
                     <span className="badge-desc">
                       {boom.by === me
-                        ? 'Твій килимок знешкодив Петарду! Таємно заховай її назад у бак 🤫'
+                        ? 'Твій килимок знешкодив Петарду! Таємно заховай її назад у бак.'
                         : `${name(boom.by)} використав Килимок і врятувався!`}
                     </span>
                   </div>
                 ) : (
                   <div className="comic-banner-badge dead-badge">
-                    <span className="badge-title">💥 ВИЛІТ ІЗ ДОЖОРУ!</span>
+                    <span className="badge-title">
+                      <IconBomb size={18} /> ВИЛІТ ІЗ ДОЖОРУ!
+                    </span>
                     <span className="badge-desc">
                       {boom.by === me
-                        ? 'У тебе не було Килимка! Ти вибуваєш із гри 😿'
+                        ? 'У тебе не було Килимка! Ти вибуваєш із гри.'
                         : `Без Килимка! ${name(boom.by)} більше не бере участь у дожорі!`}
                     </span>
                   </div>
@@ -466,9 +515,9 @@ export function Game({
 
 function DefuseDialog({ deckCount, act }: { deckCount: number; act: (a: ClientAction) => void }) {
   const [pos, setPos] = useState(0);
-  const label = pos === 0 ? 'На самий верх 😈' : pos >= deckCount ? 'На саме дно' : `${pos + 1}-а карта зверху`;
+  const label = pos === 0 ? 'На самий верх бака' : pos >= deckCount ? 'На саме дно бака' : `${pos + 1}-а карта зверху`;
   return (
-    <Modal open title="🤫 Сховай Петарду назад у бак" mandatory>
+    <Modal open title={<span className="modal-title-with-icon"><IconDefuse size={20} /> Сховай Петарду назад у бак</span>} mandatory>
       <div className="defuse-art">
         <CardFace type="petard" size="sm" />
       </div>
@@ -492,7 +541,7 @@ function DefuseDialog({ deckCount, act }: { deckCount: number; act: (a: ClientAc
           2-а
         </button>
         <button className="btn btn-ghost small" onClick={() => setPos(Math.floor(Math.random() * (deckCount + 1)))}>
-          🎲 Випадково
+          <IconDice size={14} /> Випадково
         </button>
         <button className="btn btn-ghost small" onClick={() => setPos(deckCount)}>
           Дно

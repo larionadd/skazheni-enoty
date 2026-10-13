@@ -1,8 +1,15 @@
-import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { AVATARS, CARD_DEFS, type CardType } from '../shared/cards.ts';
+import { IconSkull } from './icons.tsx';
 
 export function AvatarImg({ src, dead }: { src?: string; dead?: boolean }) {
-  if (dead) return <span className="dead-skull">💀</span>;
+  if (dead) {
+    return (
+      <span className="dead-skull" title="Вибув">
+        <IconSkull size={24} />
+      </span>
+    );
+  }
   const valid = src && AVATARS.includes(src) ? src : AVATARS[0];
   return <img className="avatar-img" src={valid} alt="" draggable={false} decoding="async" />;
 }
@@ -54,7 +61,7 @@ export function CardFace({
   );
 }
 
-/** Native <dialog> modal. `mandatory` blocks Esc/back-gesture dismissal for required choices. */
+/** Controlled React modal with high-z backdrop (never hijacks the top-layer). */
 export function Modal({
   open,
   onClose,
@@ -65,31 +72,25 @@ export function Modal({
 }: {
   open: boolean;
   onClose?: () => void;
-  title: string;
+  title: ReactNode;
   children: ReactNode;
   mandatory?: boolean;
   className?: string;
 }) {
-  const ref = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const d = ref.current;
-    if (!d) return;
-    if (open && !d.open) d.showModal();
-  }, [open]);
   if (!open) return null;
   return (
-    <dialog
-      ref={ref}
-      className={`modal ${className}`}
-      aria-labelledby="modal-title"
-      onCancel={(e) => {
-        if (mandatory) e.preventDefault();
-        else onClose?.();
+    <div
+      className={`modal-backdrop ${className}`}
+      onClick={(e) => {
+        if (!mandatory && e.target === e.currentTarget) onClose?.();
       }}
-      onClose={() => open && !mandatory && onClose?.()}
+      role="dialog"
+      aria-modal="true"
     >
-      <h2 id="modal-title">{title}</h2>
-      {children}
-    </dialog>
+      <div className={`modal ${className}`}>
+        <h2 id="modal-title">{title}</h2>
+        {children}
+      </div>
+    </div>
   );
 }

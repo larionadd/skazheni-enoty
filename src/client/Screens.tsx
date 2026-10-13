@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from 'react';
 import { AVATARS, AVATAR_LABELS, MAX_PLAYERS, MIN_PLAYERS, PLAYER_COLORS } from '../shared/cards.ts';
 import type { ClientAction, RoomView } from '../shared/protocol.ts';
+import { IconBomb, IconBot, IconCrown, IconOffline, IconRules, IconShare } from './icons.tsx';
 import { RulesModal } from './RulesModal.tsx';
 import { AvatarImg } from './ui.tsx';
 
@@ -95,7 +96,7 @@ export function Home({
 
       <section className="panel offline">
         <div className="offline-row">
-          <span>🤖 Ботів:</span>
+          <span><IconBot size={15} /> Ботів:</span>
           <div className="stepper">
             <button type="button" aria-label="Менше ботів" onClick={() => setBots(Math.max(1, bots - 1))}>
               −
@@ -107,12 +108,12 @@ export function Home({
           </div>
         </div>
         <button className="btn btn-ghost btn-big" disabled={!nameOk} onClick={() => onOffline(bots)}>
-          📴 Грати з ботами (без інтернету)
+          <IconBot size={16} /> Грати з ботами (без інтернету)
         </button>
       </section>
 
       <button type="button" className="btn btn-rules btn-big" onClick={() => setRulesOpen(true)}>
-        📖 Правила гри та всі карти
+        <IconRules size={18} /> Правила гри та всі карти
       </button>
 
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
@@ -152,7 +153,7 @@ export function Lobby({ view, act }: { view: RoomView; act: (a: ClientAction) =>
         <strong className="room-code">{view.code}</strong>
         {!view.offline && (
           <button className="btn btn-secondary" onClick={share}>
-            {copied ? '✅ Скопійовано' : '📤 Поділитися з друзями'}
+            {copied ? 'Скопійовано!' : <><IconShare size={15} /> Поділитися з друзями</>}
           </button>
         )}
       </section>
@@ -174,9 +175,11 @@ export function Lobby({ view, act }: { view: RoomView; act: (a: ClientAction) =>
                   {m.name}
                   {m.id === view.me && <em> (ти)</em>}
                 </span>
-                {m.id === view.hostId && <span title="Господар">👑</span>}
-                {m.isBot && <span className="tag">бот</span>}
-                {!m.connected && <span className="tag warn">нема зв’язку</span>}
+                {m.id === view.hostId && (
+                  <span className="host-badge" title="Господар"><IconCrown size={14} /></span>
+                )}
+                {m.isBot && <span className="tag"><IconBot size={12} /> бот</span>}
+                {!m.connected && <span className="tag warn"><IconOffline size={12} /> нема зв’язку</span>}
                 {isHost && m.id !== view.me && (
                   <button className="icon-btn" aria-label={`Вигнати ${m.name}`} onClick={() => act({ t: 'kick', playerId: m.id })}>
                     ✕
@@ -188,21 +191,21 @@ export function Lobby({ view, act }: { view: RoomView; act: (a: ClientAction) =>
         </ul>
         {isHost && view.members.length < MAX_PLAYERS && (
           <button className="btn btn-ghost" onClick={() => act({ t: 'addBot' })}>
-            ➕ Додати бота
+            Додати бота
           </button>
         )}
       </section>
 
       {isHost ? (
         <button className="btn btn-primary btn-big" disabled={view.members.length < MIN_PLAYERS} onClick={() => act({ t: 'start' })}>
-          🧨 Почати дожір
+          <IconBomb size={18} /> Почати дожір
         </button>
       ) : (
         <p className="muted center">Чекаємо, поки господар почне гру…</p>
       )}
       <div className="row between">
         <button className="btn btn-ghost small" onClick={() => setRulesOpen(true)}>
-          📖 Правила гри
+          <IconRules size={15} /> Правила гри
         </button>
         <button className="btn btn-link" onClick={() => act({ t: 'leave' })}>
           Вийти з кімнати
