@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { AVATARS, CARD_DEFS, type CardType } from '../shared/cards.ts';
 import { IconSkull } from './icons.tsx';
 
@@ -78,7 +79,7 @@ export function Modal({
   className?: string;
 }) {
   if (!open) return null;
-  return (
+  const node = (
     <div
       className={`modal-backdrop ${className}`}
       onClick={(e) => {
@@ -93,4 +94,5 @@ export function Modal({
       </div>
     </div>
   );
+  return typeof document !== 'undefined' ? createPortal(node, document.body) : node;
 }

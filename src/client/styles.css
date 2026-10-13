@@ -985,22 +985,24 @@ dialog::backdrop {
 .comic-boom-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 999999;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: env(safe-area-inset-top, 16px) 16px env(safe-area-inset-bottom, 16px);
   pointer-events: auto;
-  overflow: hidden;
+  overflow-y: auto;
   cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .comic-boom-overlay.dead {
-  background: radial-gradient(circle at center, rgba(239, 68, 68, 0.45) 0%, rgba(20, 5, 30, 0.94) 75%);
+  background: radial-gradient(circle at center, rgba(239, 68, 68, 0.52) 0%, rgba(20, 5, 30, 0.96) 75%);
   animation: flashRed 0.4s ease-out;
 }
 .comic-boom-overlay.saved {
-  background: radial-gradient(circle at center, rgba(34, 197, 94, 0.42) 0%, rgba(10, 25, 20, 0.94) 75%);
+  background: radial-gradient(circle at center, rgba(34, 197, 94, 0.48) 0%, rgba(10, 25, 20, 0.96) 75%);
   animation: flashGreen 0.4s ease-out;
 }
 
@@ -1075,9 +1077,10 @@ dialog::backdrop {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  max-width: 440px;
+  gap: 12px;
+  max-width: min(92vw, 420px);
   width: 100%;
+  margin: auto;
   animation: comicContentPop 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 }
 @keyframes comicContentPop {
@@ -1091,9 +1094,11 @@ dialog::backdrop {
   display: flex;
   align-items: center;
   justify-content: center;
+  max-height: 40vh;
 }
 .comic-boom-art {
-  width: min(84vw, 340px);
+  width: min(74vw, 290px);
+  max-height: 36vh;
   height: auto;
   aspect-ratio: 1 / 1;
   object-fit: contain;
