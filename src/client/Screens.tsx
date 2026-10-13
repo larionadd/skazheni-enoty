@@ -3,6 +3,7 @@ import { AVATARS, AVATAR_LABELS, MAX_PLAYERS, MIN_PLAYERS, PLAYER_COLORS } from 
 import type { ClientAction, RoomView } from '../shared/protocol.ts';
 import { IconBomb, IconBot, IconCrown, IconOffline, IconRules, IconShare } from './icons.tsx';
 import { RulesModal } from './RulesModal.tsx';
+import { shareTelegramRoom } from './telegram.ts';
 import { AvatarImg } from './ui.tsx';
 
 export interface Profile {
@@ -152,9 +153,14 @@ export function Lobby({ view, act }: { view: RoomView; act: (a: ClientAction) =>
         <span className="muted">Код кімнати</span>
         <strong className="room-code">{view.code}</strong>
         {!view.offline && (
-          <button className="btn btn-secondary" onClick={share}>
-            {copied ? 'Скопійовано!' : <><IconShare size={15} /> Поділитися з друзями</>}
-          </button>
+          <div className="row wrap" style={{ gap: '8px', justifyContent: 'center' }}>
+            <button className="btn btn-secondary" onClick={share}>
+              {copied ? 'Скопійовано!' : <><IconShare size={15} /> Поділитися посиланням</>}
+            </button>
+            <button className="btn btn-primary" onClick={() => shareTelegramRoom(view.code)}>
+              Запросити в Telegram
+            </button>
+          </div>
         )}
       </section>
 

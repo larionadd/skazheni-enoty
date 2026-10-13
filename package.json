@@ -10,11 +10,13 @@
     "dev:client": "vite --host",
     "build": "tsc --noEmit && vite build",
     "start": "node src/server/index.ts",
+    "bot": "tsx src/bot/run.ts",
     "images": "node scripts/prepare-images.mjs",
     "test": "node src/shared/engine.test.ts"
   },
   "dependencies": {
     "express": "^5.1.0",
+    "grammy": "^1.46.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "socket.io": "^4.8.1",

@@ -159,4 +159,16 @@ http.listen(PORT, '0.0.0.0', () => {
     .map((i) => i!.address);
   console.log(`🦝 Сервер «Скажені Єноти» слухає порт ${PORT}`);
   for (const ip of ips) console.log(`   у локальній мережі: http://${ip}:${PORT}`);
+
+  // Optional Telegram bot integration
+  if (process.env.BOT_TOKEN) {
+    import('../bot/bot.ts').then(({ createTelegramBot }) => {
+      const bot = createTelegramBot();
+      if (bot) {
+        bot.start({
+          onStart: (info) => console.log(`🤖 Telegram-бот @${info.username} підключено до сервера`),
+        });
+      }
+    }).catch((err) => console.error('Помилка запуску Telegram-бота:', err));
+  }
 });

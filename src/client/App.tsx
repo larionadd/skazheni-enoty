@@ -7,6 +7,7 @@ import { IconOffline, IconVolume } from './icons.tsx';
 import { Game, type Boom, type DrawnCardReveal } from './Game.tsx';
 import { loadSession, OfflineTransport, saveSession, type NetStatus, type Transport } from './net.ts';
 import { Home, Lobby, type Profile } from './Screens.tsx';
+import { initTelegramWebApp, getTelegramUser, getTelegramStartParam, tgHaptic } from './telegram.ts';
 
 interface Toast {
   id: number;
@@ -15,9 +16,10 @@ interface Toast {
 }
 
 function loadProfile(): Profile {
+  const tgUser = getTelegramUser();
   try {
     const p = JSON.parse(localStorage.getItem('enoty.profile') ?? 'null');
-    if (p?.name !== undefined) {
+    if (p?.name !== undefined && (p.name !== 'Шкряб' || !tgUser)) {
       return {
         name: p.name,
         avatar: AVATARS.includes(p.avatar) ? p.avatar : AVATARS[0],
@@ -26,7 +28,7 @@ function loadProfile(): Profile {
   } catch {
     /* ignore */
   }
-  return { name: 'Шкряб', avatar: AVATARS[0] };
+  return { name: tgUser?.firstName || 'Шкряб', avatar: AVATARS[0] };
 }
 
 export function App() {
@@ -109,12 +111,15 @@ export function App() {
         switch (e.kind) {
           case 'played':
             sfx.card();
+            tgHaptic.light();
             break;
           case 'noped':
             sfx.nope();
+            tgHaptic.heavy();
             break;
           case 'drew':
             sfx.draw();
+            tgHaptic.medium();
             if (e.by !== me) {
               const key = Date.now();
               setBotDrawBy({ by: e.by, key });
@@ -123,6 +128,7 @@ export function App() {
             break;
           case 'future':
             setFuture(e.cards);
+            tgHaptic.selection();
             break;
           case 'gotCard': {
             if (e.cardId !== undefined) {
@@ -142,14 +148,20 @@ export function App() {
           }
           case 'lostCard':
             toast(`Гравець ${nameOf(e.taker)} поцупив твою «${CARD_DEFS[e.card].title}»`, 'bad');
+            tgHaptic.warning();
             break;
           case 'exploded': {
             const eKey = Date.now();
             const isMe = e.by === me;
             if (boomTimerRef.current) clearTimeout(boomTimerRef.current);
             setBoom({ by: e.by, saved: e.saved, key: eKey, isMe });
-            if (e.saved) sfx.saved();
-            else sfx.boom();
+            if (e.saved) {
+              sfx.saved();
+              tgHaptic.success();
+            } else {
+              sfx.boom();
+              tgHaptic.error();
+            }
             boomTimerRef.current = window.setTimeout(() => {
               setBoom((curr) => (curr?.key === eKey ? null : curr));
             }, 1800);
@@ -157,12 +169,19 @@ export function App() {
           }
           case 'shuffled':
             toast(`Колоду перемішано (${nameOf(e.by)})`);
+            tgHaptic.medium();
             break;
           case 'turn':
-            if (e.player === me) sfx.turn();
+            if (e.player === me) {
+              sfx.turn();
+              tgHaptic.warning();
+            }
             break;
           case 'winner':
-            if (e.player === me) sfx.win();
+            if (e.player === me) {
+              sfx.win();
+              tgHaptic.success();
+            }
             break;
         }
       }
@@ -188,6 +207,11 @@ export function App() {
     return online.current;
   }, []);
 
+  // Initialize Telegram WebApp on mount
+  useEffect(() => {
+    initTelegramWebApp();
+  }, []);
+
   // Connect immediately and restore any previous online session.
   useEffect(() => {
     const client = getOnline();
@@ -195,7 +219,7 @@ export function App() {
     if (s) void client.resume(s);
   }, [getOnline]);
 
-  const initialCode = new URLSearchParams(location.search).get('room') ?? '';
+  const initialCode = getTelegramStartParam() ?? new URLSearchParams(location.search).get('room') ?? '';
 
   async function enter(mode: 'create' | 'join', code?: string) {
     setBusy(true);
