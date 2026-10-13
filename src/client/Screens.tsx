@@ -32,14 +32,8 @@ export function Home({
 
   return (
     <main className="home">
-      <header className="logo">
-        <span className="logo-emoji" aria-hidden>
-          🦝🧨
-        </span>
-        <h1>
-          Скажені Єноти
-          <small>Нічний Дожор</small>
-        </h1>
+      <header className="home-hero">
+        <img className="home-logo" src="logo.webp" alt="Скажені Єноти — Нічний Дожор" draggable={false} />
       </header>
 
       <section className="panel">
@@ -72,7 +66,7 @@ export function Home({
 
       <section className="panel">
         <button className="btn btn-primary btn-big" disabled={!nameOk || busy} onClick={onCreate}>
-          🗑️ Створити кімнату
+          Створити кімнату
         </button>
         <form
           className="join"

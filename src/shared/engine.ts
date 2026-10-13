@@ -37,7 +37,7 @@ export type GameEvent = { to?: string[] } & (
   | { kind: 'noped'; by: string; nopes: number }
   | { kind: 'resolved'; by: string; type: CardType; cancelled: boolean }
   | { kind: 'drew'; by: string }
-  | { kind: 'gotCard'; card: CardType; from?: string; reason: 'draw' | 'steal' | 'favor' }
+  | { kind: 'gotCard'; card: CardType; cardId?: number; from?: string; reason: 'draw' | 'steal' | 'favor' }
   | { kind: 'lostCard'; card: CardType; taker: string; reason: 'steal' | 'favor' }
   | { kind: 'future'; cards: CardType[] }
   | { kind: 'exploded'; by: string; saved: boolean }
@@ -246,8 +246,8 @@ function canAnyoneNope(s: GameState): boolean {
 
 function setNopeDeadline(s: GameState, now: number) {
   if (!s.pending) return;
-  // Shorten the window when nobody can answer, so the game stays snappy on the road.
-  s.pending.deadline = now + (canAnyoneNope(s) ? s.opts.nopeWindowMs : 900);
+  // Keep action visible on table long enough for humans to see what was played.
+  s.pending.deadline = now + (canAnyoneNope(s) ? s.opts.nopeWindowMs : 2200);
 }
 
 // ───────────────────────── actions ─────────────────────────
@@ -341,7 +341,7 @@ function resolve(s: GameState, pend: PendingAction) {
     if (!t.alive || t.hand.length === 0) return;
     const card = t.hand.splice(Math.floor(Math.random() * t.hand.length), 1)[0];
     actor.hand.push(card);
-    emit(s, { kind: 'gotCard', card: card.type, from: t.id, reason: 'steal', to: [actor.id] });
+    emit(s, { kind: 'gotCard', card: card.type, cardId: card.id, from: t.id, reason: 'steal', to: [actor.id] });
     emit(s, { kind: 'lostCard', card: card.type, taker: actor.id, reason: 'steal', to: [t.id] });
     addLog(s, `🫳 ${actor.name} поцупив карту в ${t.name}.`);
     return;
@@ -359,12 +359,12 @@ function resolve(s: GameState, pend: PendingAction) {
       break;
     case 'radar':
       emit(s, { kind: 'future', cards: s.deck.slice(0, 3).map((c) => c.type), to: [actor.id] });
-      addLog(s, `👃 ${actor.name} винюхує бак…`);
+      addLog(s, `👃 ${actor.name} винюхує верхні карти колоди…`);
       break;
     case 'shuffle':
       shuffleInPlace(s.deck);
       emit(s, { kind: 'shuffled', by: actor.id });
-      addLog(s, `🌪️ ${actor.name} перевернув бак!`);
+      addLog(s, `🌪️ ${actor.name} перетасував колоду!`);
       break;
     case 'favor': {
       const t = findPlayer(s, pend.target!)!;
@@ -387,7 +387,7 @@ export function giveFavor(s: GameState, pid: string, cardId: number): string | n
   const taken = takeCards(giver, [cardId]);
   if (!taken) return 'У тебе немає такої карти.';
   receiver.hand.push(taken[0]);
-  emit(s, { kind: 'gotCard', card: taken[0].type, from: giver.id, reason: 'favor', to: [receiver.id] });
+  emit(s, { kind: 'gotCard', card: taken[0].type, cardId: taken[0].id, from: giver.id, reason: 'favor', to: [receiver.id] });
   emit(s, { kind: 'lostCard', card: taken[0].type, taker: receiver.id, reason: 'favor', to: [giver.id] });
   addLog(s, `🎁 ${giver.name} віддав карту ${receiver.name}.`);
   s.favor = null;
@@ -401,12 +401,14 @@ export function drawCard(s: GameState, pid: string): string | null {
   const p = currentPlayer(s);
   if (p.id !== pid) return 'Зараз не твій хід.';
   const card = s.deck.shift();
-  if (!card) return 'Бак порожній.';
+  if (!card) return 'Колода порожня.';
   emit(s, { kind: 'drew', by: pid });
 
   if (card.type !== 'petard') {
     p.hand.push(card);
-    emit(s, { kind: 'gotCard', card: card.type, reason: 'draw', to: [pid] });
+    emit(s, { kind: 'gotCard', card: card.type, cardId: card.id, reason: 'draw', to: [pid] });
+    const more = s.turnsLeft > 1 ? ` (ще ходів: ${s.turnsLeft - 1})` : ' і завершив хід';
+    addLog(s, `🂠 ${p.name} взяв карту з колоди${more}.`);
     endOneTurn(s);
     return null;
   }

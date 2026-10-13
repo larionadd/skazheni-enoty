@@ -3,7 +3,7 @@ import { CARD_DEFS, AVATARS, type CardType } from '../shared/cards.ts';
 import type { ClientAction, GameEvent, RoomView } from '../shared/protocol.ts';
 import { CloudTransport } from './cloud.ts';
 import { sfx, isMuted, setMuted } from './fx.ts';
-import { Game, type Boom } from './Game.tsx';
+import { Game, type Boom, type DrawnCardReveal } from './Game.tsx';
 import { loadSession, OfflineTransport, saveSession, type NetStatus, type Transport } from './net.ts';
 import { Home, Lobby, type Profile } from './Screens.tsx';
 
@@ -31,11 +31,46 @@ export function App() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [future, setFuture] = useState<CardType[] | null>(null);
   const [boom, setBoom] = useState<Boom | null>(null);
+  const [drawnCard, setDrawnCard] = useState<DrawnCardReveal | null>(null);
+  const [lastNewCardId, setLastNewCardId] = useState<number | null>(null);
+  const [botDrawBy, setBotDrawBy] = useState<{ by: string; key: number } | null>(null);
   const [muted, setMutedState] = useState(isMuted());
   const transport = useRef<Transport | null>(null);
   const online = useRef<CloudTransport | null>(null);
   const viewRef = useRef<RoomView | null>(null);
+  const drawTimers = useRef<number[]>([]);
   viewRef.current = view;
+
+  const clearDrawTimers = () => {
+    for (const id of drawTimers.current) clearTimeout(id);
+    drawTimers.current = [];
+  };
+
+  const startDrawReveal = useCallback((card: CardType, cardId?: number) => {
+    clearDrawTimers();
+    const key = Date.now();
+    setDrawnCard({ card, cardId, phase: 'reveal', key });
+    const t1 = window.setTimeout(() => {
+      setDrawnCard((prev) => (prev && prev.key === key ? { ...prev, phase: 'to-hand' } : prev));
+    }, 2000);
+    const t2 = window.setTimeout(() => {
+      setDrawnCard((prev) => (prev && prev.key === key ? null : prev));
+    }, 2480);
+    drawTimers.current = [t1, t2];
+  }, []);
+
+  const dismissDrawRevealEarly = useCallback(() => {
+    clearDrawTimers();
+    setDrawnCard((prev) => {
+      if (!prev || prev.phase === 'to-hand') return prev;
+      const key = prev.key;
+      const t = window.setTimeout(() => {
+        setDrawnCard((curr) => (curr && curr.key === key ? null : curr));
+      }, 450);
+      drawTimers.current = [t];
+      return { ...prev, phase: 'to-hand' };
+    });
+  }, []);
 
   const setProfile = (p: Profile) => {
     setProfileState(p);
@@ -67,13 +102,26 @@ export function App() {
             break;
           case 'drew':
             sfx.draw();
+            if (e.by !== me) {
+              const key = Date.now();
+              setBotDrawBy({ by: e.by, key });
+              setTimeout(() => setBotDrawBy((curr) => (curr?.key === key ? null : curr)), 900);
+            }
             break;
           case 'future':
             setFuture(e.cards);
             break;
           case 'gotCard':
-            if (e.reason !== 'draw') toast(`🎁 Ти отримав «${CARD_DEFS[e.card].title}» від ${nameOf(e.from ?? '')}`, 'good');
-            else toast(`Ти витягнув «${CARD_DEFS[e.card].title}»`);
+            if (e.cardId !== undefined) {
+              const cid = e.cardId;
+              setLastNewCardId(cid);
+              setTimeout(() => setLastNewCardId((curr) => (curr === cid ? null : curr)), 6500);
+            }
+            if (e.reason === 'draw') {
+              startDrawReveal(e.card, e.cardId);
+            } else {
+              toast(`🎁 Ти отримав «${CARD_DEFS[e.card].title}» від ${nameOf(e.from ?? '')}`, 'good');
+            }
             break;
           case 'lostCard':
             toast(`😿 ${nameOf(e.taker)} забрав твою «${CARD_DEFS[e.card].title}»`, 'bad');
@@ -82,10 +130,10 @@ export function App() {
             setBoom({ by: e.by, saved: e.saved, key: Date.now() });
             if (e.saved) sfx.saved();
             else sfx.boom();
-            setTimeout(() => setBoom(null), 1800);
+            setTimeout(() => setBoom(null), 2200);
             break;
           case 'shuffled':
-            toast(`🌪️ ${nameOf(e.by)} перемішав бак`);
+            toast(`🌪️ ${nameOf(e.by)} перемішав колоду`);
             break;
           case 'turn':
             if (e.player === me) sfx.turn();
@@ -96,7 +144,7 @@ export function App() {
         }
       }
     },
-    [toast],
+    [toast, startDrawReveal],
   );
 
   const listener = useRef({
@@ -202,7 +250,19 @@ export function App() {
         />
       )}
       {inRoom && !view.game && <Lobby view={view} act={act} />}
-      {inRoom && view.game && <Game view={view} act={act} future={future} clearFuture={() => setFuture(null)} boom={boom} />}
+      {inRoom && view.game && (
+        <Game
+          view={view}
+          act={act}
+          future={future}
+          clearFuture={() => setFuture(null)}
+          boom={boom}
+          drawnCard={drawnCard}
+          onDismissDrawn={dismissDrawRevealEarly}
+          lastNewCardId={lastNewCardId}
+          botDrawBy={botDrawBy}
+        />
+      )}
 
       <div className="toasts" aria-live="polite">
         {toasts.map((t) => (

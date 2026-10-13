@@ -49,6 +49,7 @@ export class Room {
   private botMem = new Map<string, BotMemory>();
   private botReadyAt = new Map<string, number>();
   private botCount = 0;
+  private pauseBotsUntil = 0;
 
   code: string;
   private cb: RoomCallbacks;
@@ -115,7 +116,13 @@ export class Room {
     if (!m) return 'Тебе немає в кімнаті.';
     this.touch();
     const err = this.apply(m, a, now);
-    if (!err) this.changed();
+    if (!err) {
+      if (!m.isBot && a.t === 'draw') {
+        this.pauseBotsUntil = now + 2600;
+      }
+      this.changed();
+      this.dispatchEvents();
+    }
     return err;
   }
 
@@ -154,8 +161,8 @@ export class Room {
         this.game = createGame(this.members.map((x) => ({ id: x.id, name: x.name, avatar: x.avatar, isBot: x.isBot })));
         this.botMem.clear();
         this.botReadyAt.clear();
+        this.pauseBotsUntil = 0;
         for (const x of this.members) this.botMem.set(x.id, newBotMemory());
-        this.dispatchEvents();
         return null;
       }
     }
@@ -183,7 +190,6 @@ export class Room {
       default:
         err = 'Невідома дія.';
     }
-    if (!err) this.dispatchEvents();
     return err;
   }
 
@@ -192,9 +198,11 @@ export class Room {
     const g = this.game;
     if (!g || g.phase === 'over') return;
     if (tick(g, now)) {
-      this.dispatchEvents();
       this.changed();
+      this.dispatchEvents();
     }
+
+    if (now < this.pauseBotsUntil) return;
 
     for (const m of this.members) {
       const autopilot = !m.isBot && !m.connected && now - m.disconnectedAt > AUTOPILOT_AFTER_MS;
@@ -202,7 +210,7 @@ export class Room {
       const mem = this.botMem.get(m.id) ?? newBotMemory();
       this.botMem.set(m.id, mem);
 
-      // Bots "think" for a moment before acting so humans can follow the action.
+      // Bots take 3–5 seconds per turn step so humans can comfortably follow the game.
       if (!this.needsAction(m.id)) {
         this.botReadyAt.delete(m.id);
         continue;
@@ -210,7 +218,7 @@ export class Room {
       const ready = this.botReadyAt.get(m.id);
       if (ready === undefined) {
         const quick = !!g.pending;
-        this.botReadyAt.set(m.id, now + (quick ? 400 + Math.random() * 1200 : 900 + Math.random() * 900));
+        this.botReadyAt.set(m.id, now + (quick ? 1400 + Math.random() * 1000 : 3200 + Math.random() * 1800));
         continue;
       }
       if (now < ready) continue;

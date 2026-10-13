@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { CARD_DEFS, type CardType } from '../shared/cards.ts';
 import type { Card } from '../shared/engine.ts';
 import type { ClientAction, MemberView, RoomView } from '../shared/protocol.ts';
@@ -13,18 +13,33 @@ export interface Boom {
   key: number;
 }
 
+export interface DrawnCardReveal {
+  card: CardType;
+  cardId?: number;
+  phase: 'reveal' | 'to-hand';
+  key: number;
+}
+
 export function Game({
   view,
   act,
   future,
   clearFuture,
   boom,
+  drawnCard,
+  onDismissDrawn,
+  lastNewCardId,
+  botDrawBy,
 }: {
   view: RoomView;
   act: (a: ClientAction) => void;
   future: CardType[] | null;
   clearFuture: () => void;
   boom: Boom | null;
+  drawnCard?: DrawnCardReveal | null;
+  onDismissDrawn?: () => void;
+  lastNewCardId?: number | null;
+  botDrawBy?: { by: string; key: number } | null;
 }) {
   const g = view.game!;
   const me = view.me;
@@ -37,6 +52,7 @@ export function Game({
   const [targeting, setTargeting] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
+  const handRef = useRef<HTMLElement>(null);
 
   const hand = useMemo(
     () => [...g.hand].sort((a, b) => ORDER.indexOf(a.type) - ORDER.indexOf(b.type) || a.id - b.id),
@@ -48,6 +64,15 @@ export function Game({
     setSelected((sel) => sel.filter((id) => g.hand.some((c) => c.id === id)));
     if (!myTurn) setTargeting(false);
   }, [g.hand, myTurn]);
+
+  // Scroll the newly drawn/received card into center view inside the hand container
+  useEffect(() => {
+    if (!lastNewCardId || !handRef.current) return;
+    const el = handRef.current.querySelector(`[data-card-id="${lastNewCardId}"]`) as HTMLElement | null;
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  }, [lastNewCardId, hand.length]);
 
   const selCards = selected.map((id) => hand.find((c) => c.id === id)).filter(Boolean) as Card[];
   const selType = selCards[0]?.type;
@@ -93,11 +118,12 @@ export function Game({
     status = g.defuse?.playerId === me ? 'Сховай Петарду!' : `${name(g.defuse?.playerId)} таємно ховає Петарду…`;
   else if (myTurn)
     status = targeting ? '👆 Обери суперника вгорі' : `Твій хід${g.turnsLeft > 1 ? ` (ходів: ${g.turnsLeft})` : ''}: грай карти або тягни`;
-  else status = `Ходить ${name(g.current)}${g.turnsLeft > 1 ? ` (ходів: ${g.turnsLeft})` : ''}`;
+  else status = `Ходить ${name(g.current)}${g.turnsLeft > 1 ? ` (ходів: ${g.turnsLeft})` : ''}…`;
 
   const chance = g.deckCount ? Math.round((g.petardsInDeck / g.deckCount) * 100) : 0;
   const opponents = view.members.filter((m) => m.id !== me);
   const recentLogs = g.log.slice(-3);
+  const drawnDef = drawnCard ? CARD_DEFS[drawnCard.card] : null;
 
   return (
     <main className={`game${boom && !boom.saved ? ' shake' : ''}`}>
@@ -121,6 +147,7 @@ export function Game({
               </span>
               <span className="opp-name">{m.name}</span>
               <span className="opp-cards">🂠 {m.cardCount ?? 0}</span>
+              {isTurn && !g.pending && <span className="opp-thinking">думає…</span>}
               {g.pending?.target === m.id && <span className="opp-target">🎯</span>}
             </button>
           );
@@ -132,8 +159,8 @@ export function Game({
         <div className="deck-wrap">
           <button
             type="button"
-            className={`deck-card-stack${myTurn && !targeting ? ' ready' : ''}`}
-            disabled={!myTurn || targeting}
+            className={`deck-card-stack${myTurn && !targeting && !drawnCard ? ' ready' : ''}`}
+            disabled={!myTurn || targeting || !!drawnCard}
             onClick={() => {
               setSelected([]);
               act({ t: 'draw' });
@@ -144,6 +171,12 @@ export function Game({
             <span className="deck-badge-top">{g.deckCount} карт</span>
             <span className={`deck-badge-bottom${chance >= 30 ? ' hot' : ''}`}>🧨 {chance}%</span>
           </button>
+          {botDrawBy && (
+            <div key={botDrawBy.key} className="bot-draw-fly" aria-hidden>
+              <img src="cards/back.webp" alt="" draggable={false} />
+              <span>{name(botDrawBy.by)} тягне карту</span>
+            </div>
+          )}
         </div>
 
         <div className="discard" aria-label="Скинуті карти">
@@ -201,7 +234,7 @@ export function Game({
         </section>
       )}
 
-      {!alive && g.phase !== 'over' && <p className="spectator">💥 Ти вилетів. Дивись, хто стане королем бака!</p>}
+      {!alive && g.phase !== 'over' && <p className="spectator">💥 Ти вилетів. Дивись, хто стане королем ночі!</p>}
 
       {/* Action bar */}
       {selDef && (
@@ -224,12 +257,43 @@ export function Game({
       )}
 
       {/* Hand */}
-      <section className={`hand${hand.length > 6 ? ' tight' : ''}`} aria-label="Твої карти">
+      <section ref={handRef} className={`hand${hand.length > 6 ? ' tight' : ''}`} aria-label="Твої карти">
         {hand.map((c) => (
-          <CardFace key={c.id} type={c.type} selected={selected.includes(c.id)} onClick={() => tapCard(c)} />
+          <CardFace
+            key={c.id}
+            cardId={c.id}
+            type={c.type}
+            selected={selected.includes(c.id)}
+            isNew={c.id === lastNewCardId}
+            dim={drawnCard?.phase === 'reveal' && drawnCard.cardId === c.id}
+            onClick={() => tapCard(c)}
+          />
         ))}
         {!hand.length && alive && <span className="muted">Порожні лапи</span>}
       </section>
+
+      {/* ── Drawn Card 2/3-Screen Reveal Animation Overlay ── */}
+      {drawnCard && drawnDef && (
+        <div
+          key={drawnCard.key}
+          className={`draw-reveal-backdrop ${drawnCard.phase}`}
+          onClick={onDismissDrawn}
+          role="status"
+          aria-live="assertive"
+        >
+          <div className={`draw-reveal-card ${drawnCard.phase}`} style={{ '--accent': drawnDef.color } as CSSProperties}>
+            <span className="draw-reveal-tag">ВИТЯГНУТА КАРТА</span>
+            <h3 className="draw-reveal-title">{drawnDef.title}</h3>
+            <div className="draw-reveal-art-wrap">
+              <img className="draw-reveal-art" src={drawnDef.image} alt={drawnDef.title} draggable={false} />
+            </div>
+            <p className="draw-reveal-rule">{drawnDef.rule}</p>
+            <div className="draw-reveal-bar">
+              <div className="draw-reveal-bar-fill" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Dialogs ── */}
       <Modal open={g.phase === 'favor' && g.favor?.giver === me} title={`🥺 ${name(g.favor?.receiver)} просить поділитися`} mandatory>
@@ -243,7 +307,7 @@ export function Game({
 
       {g.phase === 'defuse' && g.defuse?.playerId === me && <DefuseDialog deckCount={g.deckCount} act={act} />}
 
-      <Modal open={!!future} onClose={clearFuture} title="👃 Нюх-Радар: верх бака">
+      <Modal open={!!future} onClose={clearFuture} title="👃 Нюх-Радар: верх колоди">
         <div className="future">
           {future?.map((t, i) => (
             <div key={i} className="future-slot">
@@ -251,15 +315,15 @@ export function Game({
               <CardFace type={t} size="sm" />
             </div>
           ))}
-          {future?.length === 0 && <p>Бак порожній!</p>}
+          {future?.length === 0 && <p>Колода порожня!</p>}
         </div>
         <button className="btn btn-primary" onClick={clearFuture}>
           Запам’ятав 🤫
         </button>
       </Modal>
 
-      <Modal open={g.phase === 'over'} title={g.winner === me ? '🏆 Ти король бака!' : `🏆 Переміг ${name(g.winner ?? undefined)}`} mandatory>
-        <p className="big-emoji">{g.winner === me ? '👑🦝' : '💥🗑️'}</p>
+      <Modal open={g.phase === 'over'} title={g.winner === me ? '🏆 Ти переміг!' : `🏆 Переміг ${name(g.winner ?? undefined)}`} mandatory>
+        <p className="big-emoji">{g.winner === me ? '👑🦝' : '💥😿'}</p>
         {view.hostId === me ? (
           <button className="btn btn-primary btn-big" onClick={() => act({ t: 'restart' })}>
             🔁 Ще раунд

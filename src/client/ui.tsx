@@ -6,30 +6,43 @@ export function CardFace({
   size = 'md',
   selected,
   dim,
+  isNew,
+  cardId,
   onClick,
 }: {
   type: CardType;
   size?: 'sm' | 'md' | 'lg';
   selected?: boolean;
   dim?: boolean;
+  isNew?: boolean;
+  cardId?: number;
   onClick?: () => void;
 }) {
   const d = CARD_DEFS[type];
-  const cls = `card card-${size}${selected ? ' selected' : ''}${dim ? ' dim' : ''}${d.pair ? ' pair' : ''}`;
+  const cls = `card card-${size}${selected ? ' selected' : ''}${dim ? ' dim' : ''}${isNew ? ' card-new' : ''}${d.pair ? ' pair' : ''}`;
   const style = { '--accent': d.color } as CSSProperties;
   const body = (
     <>
+      {isNew && <span className="card-new-badge">НОВА</span>}
       <span className="card-title">{d.title}</span>
       <img className="card-art" src={d.image} alt="" draggable={false} loading="lazy" decoding="async" />
       {size !== 'sm' && <span className="card-text">{d.short}</span>}
     </>
   );
   return onClick ? (
-    <button type="button" className={cls} style={style} onClick={onClick} aria-pressed={selected} aria-label={`${d.title}. ${d.short}`}>
+    <button
+      type="button"
+      className={cls}
+      style={style}
+      data-card-id={cardId}
+      onClick={onClick}
+      aria-pressed={selected}
+      aria-label={`${d.title}. ${d.short}`}
+    >
       {body}
     </button>
   ) : (
-    <div className={cls} style={style} aria-label={d.title}>
+    <div className={cls} style={style} data-card-id={cardId} aria-label={d.title}>
       {body}
     </div>
   );

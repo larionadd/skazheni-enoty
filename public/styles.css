@@ -27,7 +27,14 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100dvh;
-  background: radial-gradient(circle at 50% 25%, #2b1452 0%, #120824 65%, #090414 100%);
+  background-color: #0e061c;
+  background-image:
+    radial-gradient(circle at 50% 15%, rgba(255, 159, 28, 0.16) 0%, transparent 48%),
+    linear-gradient(180deg, rgba(11, 5, 24, 0.42) 0%, rgba(16, 8, 34, 0.72) 55%, rgba(8, 3, 18, 0.92) 100%),
+    url('bg-alley.webp');
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
   color: var(--text);
   user-select: none;
 }
@@ -71,10 +78,12 @@ dialog::backdrop {
 }
 
 .net {
-  padding: 3px 10px;
+  padding: 4px 11px;
   border-radius: 999px;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.07);
+  font-weight: 700;
+  background: rgba(18, 9, 36, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(8px);
 }
 .net-online {
   color: var(--neon-green);
@@ -91,14 +100,15 @@ dialog::backdrop {
   font-weight: 800;
   letter-spacing: 0.06em;
   color: var(--neon-orange);
-  background: rgba(255, 159, 28, 0.14);
+  background: rgba(255, 159, 28, 0.18);
+  border: 1px solid rgba(255, 159, 28, 0.4);
   padding: 3px 10px;
   border-radius: 999px;
 }
 
 .icon-btn {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(20, 10, 40, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 10px;
   width: 36px;
   height: 36px;
@@ -106,6 +116,7 @@ dialog::backdrop {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  backdrop-filter: blur(6px);
 }
 
 /* ── Home & Lobby ── */
@@ -113,47 +124,49 @@ dialog::backdrop {
 .lobby {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 13px;
   flex: 1;
   justify-content: center;
-  padding: 8px 0 18px;
+  padding: 4px 0 16px;
 }
 
-.logo {
+.home-hero {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 12px;
-  text-align: left;
+  align-items: center;
+  margin: -4px 0 2px;
 }
-.logo-emoji {
-  font-size: 2.8rem;
-  filter: drop-shadow(0 0 12px rgba(255, 159, 28, 0.55));
-}
-.logo h1 {
-  margin: 0;
-  font-size: 1.75rem;
-  line-height: 1.05;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  text-shadow: 0 2px 14px rgba(255, 45, 149, 0.55);
-}
-.logo h1 small {
+
+.home-logo {
+  width: min(100%, 390px);
+  height: auto;
   display: block;
-  font-size: 0.9rem;
-  color: var(--neon-orange);
-  margin-top: 3px;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 18px rgba(255, 45, 149, 0.32));
+  animation: heroFloat 3.6s ease-in-out infinite alternate;
+}
+
+@keyframes heroFloat {
+  from {
+    transform: translateY(0px);
+  }
+  to {
+    transform: translateY(-5px);
+  }
 }
 
 .panel {
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 18px;
-  padding: 14px;
+  background: linear-gradient(165deg, rgba(40, 22, 72, 0.88) 0%, rgba(20, 10, 40, 0.92) 100%);
+  border: 1.5px solid rgba(185, 135, 255, 0.38);
+  border-top-color: rgba(255, 210, 125, 0.45);
+  border-radius: 20px;
+  padding: 15px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    0 14px 32px rgba(0, 0, 0, 0.62),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
 }
 
 .field {
@@ -990,3 +1003,232 @@ dialog::backdrop {
   line-height: 1.32;
 }
 
+/* ── Newly Drawn Card in Hand & Bot Turn Pacing ── */
+.card {
+  position: relative;
+}
+.card.dim {
+  opacity: 0.25;
+  transform: scale(0.92);
+}
+.card.card-new {
+  box-shadow:
+    0 0 0 2.5px #ffe169,
+    0 0 22px rgba(255, 196, 0, 0.75);
+  animation: newCardLand 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-new-badge {
+  position: absolute;
+  top: -9px;
+  right: -5px;
+  z-index: 3;
+  background: linear-gradient(135deg, #ffe169, #ff9f1c);
+  color: #1a0933;
+  font-weight: 900;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.65);
+}
+@keyframes newCardLand {
+  0% {
+    transform: translateY(-28px) scale(1.12);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.opp-thinking {
+  font-size: 0.66rem;
+  color: #ffe169;
+  font-weight: 800;
+  background: rgba(255, 159, 28, 0.2);
+  border-radius: 999px;
+  padding: 1px 6px;
+  animation: pulse 0.65s infinite alternate;
+}
+
+.deck-wrap {
+  position: relative;
+}
+.bot-draw-fly {
+  position: absolute;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+  animation: botDrawAnim 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.bot-draw-fly img {
+  width: 78px;
+  height: 110px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.75);
+  border: 2px solid var(--neon-orange);
+}
+.bot-draw-fly span {
+  background: rgba(20, 9, 38, 0.92);
+  border: 1px solid var(--neon-orange);
+  color: #ffe169;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+@keyframes botDrawAnim {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(-95px) scale(0.88) rotate(-8deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-135px) scale(0.55) rotate(-14deg);
+  }
+}
+
+/* ── 2/3-Screen Card Draw Reveal Overlay (2s hold + fly to hand) ── */
+.draw-reveal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 3, 18, 0.76);
+  backdrop-filter: blur(5px);
+  padding: 16px;
+  transition: background 0.38s ease, backdrop-filter 0.38s ease;
+  cursor: pointer;
+}
+.draw-reveal-backdrop.to-hand {
+  background: rgba(8, 3, 18, 0);
+  backdrop-filter: blur(0px);
+  pointer-events: none;
+}
+
+.draw-reveal-card {
+  --accent: #ff9f1c;
+  width: min(86vw, 350px);
+  height: 66dvh;
+  max-height: 540px;
+  min-height: 370px;
+  border-radius: 24px;
+  border: 3.5px solid var(--accent);
+  background: linear-gradient(180deg, #2b174d 0%, #140928 100%);
+  box-shadow:
+    0 22px 55px rgba(0, 0, 0, 0.85),
+    0 0 38px color-mix(in srgb, var(--accent) 60%, transparent);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  transform-origin: center center;
+}
+
+.draw-reveal-card.reveal {
+  animation: drawFlyFromDeck 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.08) forwards;
+}
+
+.draw-reveal-card.to-hand {
+  animation: drawFlyToHand 0.46s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes drawFlyFromDeck {
+  0% {
+    opacity: 0.2;
+    transform: translate(-55px, -150px) scale(0.28) rotateY(80deg) rotateZ(-10deg);
+  }
+  65% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1.04) rotateY(0deg) rotateZ(1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1) rotateY(0deg) rotateZ(0deg);
+  }
+}
+
+@keyframes drawFlyToHand {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1) rotateZ(0deg);
+  }
+  100% {
+    opacity: 0.15;
+    transform: translate(0, 38dvh) scale(0.3) rotateZ(4deg);
+  }
+}
+
+.draw-reveal-tag {
+  background: var(--accent);
+  color: #140726;
+  font-weight: 900;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  padding: 3px 12px;
+  border-radius: 999px;
+}
+
+.draw-reveal-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+.draw-reveal-art-wrap {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  background: #0d051a;
+}
+
+.draw-reveal-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.draw-reveal-rule {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: #f2ecff;
+  background: rgba(0, 0, 0, 0.38);
+  padding: 8px 12px;
+  border-radius: 12px;
+  width: 100%;
+}
+
+.draw-reveal-bar {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.draw-reveal-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #fff);
+  animation: shrink 2s linear forwards;
+}
