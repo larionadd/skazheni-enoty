@@ -11,6 +11,7 @@ export interface Boom {
   by: string;
   saved: boolean;
   key: number;
+  isMe?: boolean;
 }
 
 export interface DrawnCardReveal {
@@ -393,10 +394,70 @@ export function Game({
         </button>
       </Modal>
 
+      {/* ── Comic "BOOM" Explosion Animated Overlay ── */}
       {boom && (
-        <div key={boom.key} className={`boom ${boom.saved ? 'saved' : 'dead'}`} aria-hidden>
-          <span>{boom.saved ? '🫓🦝' : '💥'}</span>
-          <b>{boom.saved ? `${name(boom.by)} прикинувся Килимком!` : `БАХ! ${name(boom.by)} вилітає!`}</b>
+        <div
+          key={boom.key}
+          className={`comic-boom-overlay ${boom.saved ? 'saved' : 'dead'}`}
+          role="alert"
+          aria-live="assertive"
+        >
+          <div className="comic-starburst-spin" aria-hidden />
+          <div className="comic-shockwave-ring" aria-hidden />
+
+          <div className="comic-boom-content">
+            {/* Pop-art Comic BOOM Graphic */}
+            <div className="comic-boom-graphic-box">
+              <img src="boom.webp" alt="BOOM!" className="comic-boom-art" draggable={false} />
+              <div className="comic-burst-words" aria-hidden>
+                <span className="comic-word w1">КА-БУУМ!</span>
+                <span className="comic-word w2">БА-БАХ!</span>
+                <span className="comic-word w3">💥</span>
+                <span className="comic-word w4">⚡</span>
+                <span className="comic-word w5">🧨</span>
+              </div>
+            </div>
+
+            {/* Character & Outcome Banner */}
+            <div className="comic-boom-banner" style={{ '--pcolor': colorOf(boom.by) } as CSSProperties}>
+              <div className="comic-boom-player">
+                <span className="comic-boom-avatar">
+                  <AvatarImg src={byId.get(boom.by)?.avatar} dead={!boom.saved} />
+                </span>
+                <div className="comic-boom-info">
+                  <span className="comic-boom-pname">
+                    <i className="p-dot" aria-hidden />
+                    {name(boom.by)} {boom.by === me ? ' (ТИ!)' : ''}
+                  </span>
+                  <span className="comic-boom-subtitle">
+                    {boom.saved ? 'ВРЯТОВАНО ВІД ВИБУХУ!' : 'ВИБУХ ПЕТАРДИ В БАКУ!'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="comic-boom-badge-row">
+                {boom.saved ? (
+                  <div className="comic-banner-badge saved-badge">
+                    <span className="badge-title">🫓 ПРИКИНУВСЯ КИЛИМКОМ!</span>
+                    <span className="badge-desc">
+                      {boom.by === me
+                        ? 'Твій килимок знешкодив Петарду! Таємно заховай її назад у бак 🤫'
+                        : `${name(boom.by)} використав Килимок і врятувався!`}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="comic-banner-badge dead-badge">
+                    <span className="badge-title">💥 ВИЛІТ ІЗ ДОЖОРУ!</span>
+                    <span className="badge-desc">
+                      {boom.by === me
+                        ? 'У тебе не було Килимка! Ти вибуваєш із гри 😿'
+                        : `Без Килимка! ${name(boom.by)} більше не бере участь у дожорі!`}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </main>

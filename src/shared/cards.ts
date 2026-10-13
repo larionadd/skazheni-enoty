@@ -163,7 +163,7 @@ export const AVATAR_LABELS: Record<string, string> = {
   'avatars/raccoon-2.webp': 'Барон',
   'avatars/raccoon-3.webp': 'Панк',
   'avatars/raccoon-4.webp': 'Тінь',
-  'avatars/raccoon-5.webp': 'Кібер',
+  'avatars/raccoon-5.webp': 'Діджей',
 };
 export const PLAYER_COLORS = ['#38bdf8', '#ff9f1c', '#c084fc', '#2dd4bf', '#fb7185'];
 export const MIN_PLAYERS = 2;

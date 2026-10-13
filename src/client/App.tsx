@@ -135,12 +135,14 @@ export function App() {
           case 'lostCard':
             toast(`😿 ${nameOf(e.taker)} забрав твою «${CARD_DEFS[e.card].title}»`, 'bad');
             break;
-          case 'exploded':
-            setBoom({ by: e.by, saved: e.saved, key: Date.now() });
+          case 'exploded': {
+            const eKey = Date.now();
+            setBoom({ by: e.by, saved: e.saved, key: eKey, isMe: e.by === me });
             if (e.saved) sfx.saved();
             else sfx.boom();
-            setTimeout(() => setBoom(null), 2200);
+            setTimeout(() => setBoom((curr) => (curr?.key === eKey ? null : curr)), 3200);
             break;
+          }
           case 'shuffled':
             toast(`🌪️ ${nameOf(e.by)} перемішав колоду`);
             break;
