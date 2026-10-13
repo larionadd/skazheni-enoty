@@ -152,5 +152,6 @@ export const ACTION_TYPES: CardType[] = ['blame', 'bush', 'radar', 'shuffle', 'f
 export const PAIR_TYPES: CardType[] = ['shawarma', 'baron', 'punk', 'hoodie'];
 
 export const AVATARS = ['🦝', '🐀', '🦨', '🦡', '🐿️', '🦊', '🐻', '🐼'];
+export const PLAYER_COLORS = ['#38bdf8', '#ff9f1c', '#c084fc', '#2dd4bf', '#fb7185'];
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 5;

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { AVATARS, MAX_PLAYERS, MIN_PLAYERS } from '../shared/cards.ts';
+import { useState, type CSSProperties } from 'react';
+import { AVATARS, MAX_PLAYERS, MIN_PLAYERS, PLAYER_COLORS } from '../shared/cards.ts';
 import type { ClientAction, RoomView } from '../shared/protocol.ts';
 import { RulesModal } from './RulesModal.tsx';
 
@@ -159,23 +159,27 @@ export function Lobby({ view, act }: { view: RoomView; act: (a: ClientAction) =>
           Банда ({view.members.length}/{MAX_PLAYERS})
         </h2>
         <ul className="members">
-          {view.members.map((m) => (
-            <li key={m.id} className={m.connected ? '' : 'offline'}>
-              <span className="avatar">{m.avatar}</span>
-              <span className="mname">
-                {m.name}
-                {m.id === view.me && <em> (ти)</em>}
-              </span>
-              {m.id === view.hostId && <span title="Господар">👑</span>}
-              {m.isBot && <span className="tag">бот</span>}
-              {!m.connected && <span className="tag warn">нема зв’язку</span>}
-              {isHost && m.id !== view.me && (
-                <button className="icon-btn" aria-label={`Вигнати ${m.name}`} onClick={() => act({ t: 'kick', playerId: m.id })}>
-                  ✕
-                </button>
-              )}
-            </li>
-          ))}
+          {view.members.map((m, idx) => {
+            const pcolor = m.color || PLAYER_COLORS[idx % PLAYER_COLORS.length];
+            return (
+              <li key={m.id} className={m.connected ? '' : 'offline'} style={{ '--pcolor': pcolor } as CSSProperties}>
+                <span className="avatar">{m.avatar}</span>
+                <span className="mname">
+                  <i className="p-dot" aria-hidden />
+                  {m.name}
+                  {m.id === view.me && <em> (ти)</em>}
+                </span>
+                {m.id === view.hostId && <span title="Господар">👑</span>}
+                {m.isBot && <span className="tag">бот</span>}
+                {!m.connected && <span className="tag warn">нема зв’язку</span>}
+                {isHost && m.id !== view.me && (
+                  <button className="icon-btn" aria-label={`Вигнати ${m.name}`} onClick={() => act({ t: 'kick', playerId: m.id })}>
+                    ✕
+                  </button>
+                )}
+              </li>
+            );
+          })}
         </ul>
         {isHost && view.members.length < MAX_PLAYERS && (
           <button className="btn btn-ghost" onClick={() => act({ t: 'addBot' })}>

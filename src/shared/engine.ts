@@ -339,8 +339,10 @@ function resolve(s: GameState, pend: PendingAction) {
   if (pend.pair) {
     const t = findPlayer(s, pend.target!)!;
     if (!t.alive || t.hand.length === 0) return;
-    const card = t.hand.splice(Math.floor(Math.random() * t.hand.length), 1)[0];
-    actor.hand.push(card);
+    const stealIdx = Math.floor(Math.random() * t.hand.length);
+    const card = t.hand[stealIdx];
+    t.hand = t.hand.filter((_, i) => i !== stealIdx);
+    actor.hand = [...actor.hand, card];
     emit(s, { kind: 'gotCard', card: card.type, cardId: card.id, from: t.id, reason: 'steal', to: [actor.id] });
     emit(s, { kind: 'lostCard', card: card.type, taker: actor.id, reason: 'steal', to: [t.id] });
     addLog(s, `🫳 ${actor.name} поцупив карту в ${t.name}.`);
@@ -386,7 +388,7 @@ export function giveFavor(s: GameState, pid: string, cardId: number): string | n
   const receiver = findPlayer(s, s.favor.receiver)!;
   const taken = takeCards(giver, [cardId]);
   if (!taken) return 'У тебе немає такої карти.';
-  receiver.hand.push(taken[0]);
+  receiver.hand = [...receiver.hand, taken[0]];
   emit(s, { kind: 'gotCard', card: taken[0].type, cardId: taken[0].id, from: giver.id, reason: 'favor', to: [receiver.id] });
   emit(s, { kind: 'lostCard', card: taken[0].type, taker: receiver.id, reason: 'favor', to: [giver.id] });
   addLog(s, `🎁 ${giver.name} віддав карту ${receiver.name}.`);
@@ -405,7 +407,7 @@ export function drawCard(s: GameState, pid: string): string | null {
   emit(s, { kind: 'drew', by: pid });
 
   if (card.type !== 'petard') {
-    p.hand.push(card);
+    p.hand = [...p.hand, card];
     emit(s, { kind: 'gotCard', card: card.type, cardId: card.id, reason: 'draw', to: [pid] });
     const more = s.turnsLeft > 1 ? ` (ще ходів: ${s.turnsLeft - 1})` : ' і завершив хід';
     addLog(s, `🂠 ${p.name} взяв карту з колоди${more}.`);

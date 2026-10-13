@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { CARD_DEFS, type CardType } from '../shared/cards.ts';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { CARD_DEFS, PLAYER_COLORS, type CardType } from '../shared/cards.ts';
 import type { Card } from '../shared/engine.ts';
 import type { ClientAction, MemberView, RoomView } from '../shared/protocol.ts';
 import { RulesModal } from './RulesModal.tsx';
@@ -16,8 +16,33 @@ export interface Boom {
 export interface DrawnCardReveal {
   card: CardType;
   cardId?: number;
+  label?: string;
   phase: 'reveal' | 'to-hand';
   key: number;
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** Highlights any player names inside a log or status string with their assigned color badge. */
+function renderColoredText(text: string, members: MemberView[]): ReactNode {
+  const valid = members.filter((m) => m.name.trim().length > 0);
+  if (!valid.length) return text;
+  const sorted = [...valid].sort((a, b) => b.name.length - a.name.length);
+  const byName = new Map(sorted.map((m, idx) => [m.name, m.color || PLAYER_COLORS[idx % PLAYER_COLORS.length]]));
+  const pattern = new RegExp(`(${sorted.map((m) => escapeRegExp(m.name)).join('|')})`, 'g');
+  const parts = text.split(pattern);
+  return parts.map((part, i) => {
+    const color = byName.get(part);
+    if (!color) return part;
+    return (
+      <span key={i} className="p-name-tag" style={{ '--pcolor': color } as CSSProperties}>
+        <i className="p-dot" aria-hidden />
+        {part}
+      </span>
+    );
+  });
 }
 
 export function Game({
@@ -45,6 +70,7 @@ export function Game({
   const me = view.me;
   const byId = useMemo(() => new Map(view.members.map((m) => [m.id, m])), [view.members]);
   const name = (id?: string) => (id && byId.get(id)?.name) || '???';
+  const colorOf = (id?: string) => (id && byId.get(id)?.color) || PLAYER_COLORS[0];
   const meM = byId.get(me);
   const alive = meM?.alive !== false;
 
@@ -54,16 +80,15 @@ export function Game({
   const [logOpen, setLogOpen] = useState(false);
   const handRef = useRef<HTMLElement>(null);
 
-  const hand = useMemo(
-    () => [...g.hand].sort((a, b) => ORDER.indexOf(a.type) - ORDER.indexOf(b.type) || a.id - b.id),
-    [g.hand],
-  );
+  // Always compute sorted hand fresh on every render so newly received cards appear immediately.
+  const hand = [...g.hand].sort((a, b) => ORDER.indexOf(a.type) - ORDER.indexOf(b.type) || a.id - b.id);
   const myTurn = g.phase === 'turn' && g.current === me && !g.pending;
+  const handIdsKey = g.hand.map((c) => c.id).join(',');
 
   useEffect(() => {
     setSelected((sel) => sel.filter((id) => g.hand.some((c) => c.id === id)));
     if (!myTurn) setTargeting(false);
-  }, [g.hand, myTurn]);
+  }, [handIdsKey, myTurn]);
 
   // Scroll the newly drawn/received card into center view inside the hand container
   useEffect(() => {
@@ -72,7 +97,7 @@ export function Game({
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
-  }, [lastNewCardId, hand.length]);
+  }, [lastNewCardId, handIdsKey]);
 
   const selCards = selected.map((id) => hand.find((c) => c.id === id)).filter(Boolean) as Card[];
   const selType = selCards[0]?.type;
@@ -137,6 +162,7 @@ export function Game({
               key={m.id}
               type="button"
               className={`opp${isTurn ? ' turn' : ''}${m.alive === false ? ' dead' : ''}${pickable ? ' pickable' : ''}`}
+              style={{ '--pcolor': m.color || PLAYER_COLORS[0] } as CSSProperties}
               onClick={() => pickTarget(m)}
               disabled={!pickable}
             >
@@ -145,7 +171,10 @@ export function Game({
                 {!m.connected && !m.isBot && <i className="badge-off">📵</i>}
                 {m.isBot && <i className="badge-bot">🤖</i>}
               </span>
-              <span className="opp-name">{m.name}</span>
+              <span className="opp-name">
+                <i className="p-dot" aria-hidden />
+                {m.name}
+              </span>
               <span className="opp-cards">🂠 {m.cardCount ?? 0}</span>
               {isTurn && !g.pending && <span className="opp-thinking">думає…</span>}
               {g.pending?.target === m.id && <span className="opp-target">🎯</span>}
@@ -172,7 +201,7 @@ export function Game({
             <span className={`deck-badge-bottom${chance >= 30 ? ' hot' : ''}`}>🧨 {chance}%</span>
           </button>
           {botDrawBy && (
-            <div key={botDrawBy.key} className="bot-draw-fly" aria-hidden>
+            <div key={botDrawBy.key} className="bot-draw-fly" style={{ '--pcolor': colorOf(botDrawBy.by) } as CSSProperties} aria-hidden>
               <img src="cards/back.webp" alt="" draggable={false} />
               <span>{name(botDrawBy.by)} тягне карту</span>
             </div>
@@ -196,7 +225,7 @@ export function Game({
       <div className="center-feed">
         <div className="status-row">
           <p className="status" role="status" aria-live="polite">
-            {status}
+            {renderColoredText(status, view.members)}
           </p>
           <button className="icon-btn" aria-label="Правила гри" title="Правила гри" onClick={() => setRulesOpen(true)}>
             📖
@@ -206,7 +235,7 @@ export function Game({
         <button type="button" className="center-log" onClick={() => setLogOpen(true)} aria-label="Відкрити повний журнал ходів">
           {recentLogs.map((line, i) => (
             <div key={i} className={`center-log-line${i === recentLogs.length - 1 ? ' latest' : ''}`}>
-              {line}
+              {renderColoredText(line, view.members)}
             </div>
           ))}
         </button>
@@ -256,21 +285,34 @@ export function Game({
         </section>
       )}
 
-      {/* Hand */}
-      <section ref={handRef} className={`hand${hand.length > 6 ? ' tight' : ''}`} aria-label="Твої карти">
-        {hand.map((c) => (
-          <CardFace
-            key={c.id}
-            cardId={c.id}
-            type={c.type}
-            selected={selected.includes(c.id)}
-            isNew={c.id === lastNewCardId}
-            dim={drawnCard?.phase === 'reveal' && drawnCard.cardId === c.id}
-            onClick={() => tapCard(c)}
-          />
-        ))}
-        {!hand.length && alive && <span className="muted">Порожні лапи</span>}
-      </section>
+      {/* Player's own colored badge + Hand */}
+      <div className="my-hand-area">
+        {meM && (
+          <div className="my-player-bar" style={{ '--pcolor': meM.color || PLAYER_COLORS[0] } as CSSProperties}>
+            <span className="my-player-id">
+              <span className="my-avatar-ring">{meM.avatar}</span>
+              <span className="p-name-tag" style={{ '--pcolor': meM.color || PLAYER_COLORS[0] } as CSSProperties}>
+                <i className="p-dot" aria-hidden />
+                {meM.name} (ти)
+              </span>
+            </span>
+            <span className="my-card-count">🂠 Карт у руці: {hand.length}</span>
+          </div>
+        )}
+        <section ref={handRef} className={`hand${hand.length > 6 ? ' tight' : ''}`} aria-label="Твої карти">
+          {hand.map((c) => (
+            <CardFace
+              key={c.id}
+              cardId={c.id}
+              type={c.type}
+              selected={selected.includes(c.id)}
+              isNew={c.id === lastNewCardId}
+              onClick={() => tapCard(c)}
+            />
+          ))}
+          {!hand.length && alive && <span className="muted">Порожні лапи</span>}
+        </section>
+      </div>
 
       {/* ── Drawn Card 2/3-Screen Reveal Animation Overlay ── */}
       {drawnCard && drawnDef && (
@@ -282,7 +324,7 @@ export function Game({
           aria-live="assertive"
         >
           <div className={`draw-reveal-card ${drawnCard.phase}`} style={{ '--accent': drawnDef.color } as CSSProperties}>
-            <span className="draw-reveal-tag">ВИТЯГНУТА КАРТА</span>
+            <span className="draw-reveal-tag">{drawnCard.label ?? 'ВИТЯГНУТА КАРТА'}</span>
             <h3 className="draw-reveal-title">{drawnDef.title}</h3>
             <div className="draw-reveal-art-wrap">
               <img className="draw-reveal-art" src={drawnDef.image} alt={drawnDef.title} draggable={false} />
@@ -341,7 +383,7 @@ export function Game({
       <Modal open={logOpen} onClose={() => setLogOpen(false)} title="📜 Повний журнал ходів" className="tall">
         <ol className="log">
           {[...g.log].reverse().map((l, i) => (
-            <li key={i}>{l}</li>
+            <li key={i}>{renderColoredText(l, view.members)}</li>
           ))}
         </ol>
         <button className="btn btn-primary" onClick={() => setLogOpen(false)}>

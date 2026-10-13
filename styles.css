@@ -311,19 +311,34 @@ dialog::backdrop {
   gap: 8px;
 }
 .members li {
+  --pcolor: #38bdf8;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
   background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid color-mix(in srgb, var(--pcolor) 42%, transparent);
   border-radius: 12px;
 }
 .members .avatar {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--pcolor);
+  background: color-mix(in srgb, var(--pcolor) 18%, #120724);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--pcolor) 45%, transparent);
 }
 .members .mname {
   flex: 1;
-  font-weight: 700;
+  font-weight: 800;
+  color: var(--pcolor);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .tag {
   font-size: 0.72rem;
@@ -352,23 +367,26 @@ dialog::backdrop {
 }
 
 .opp {
-  background: rgba(255, 255, 255, 0.06);
-  border: 2px solid rgba(255, 255, 255, 0.12);
+  --pcolor: #38bdf8;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--pcolor) 14%, rgba(22, 11, 42, 0.9)), rgba(16, 8, 32, 0.92));
+  border: 2px solid color-mix(in srgb, var(--pcolor) 48%, rgba(255, 255, 255, 0.14));
   border-radius: 14px;
   padding: 6px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   position: relative;
 }
 .opp.turn {
-  border-color: var(--neon-orange);
-  box-shadow: 0 0 14px rgba(255, 159, 28, 0.45);
+  border-color: var(--pcolor);
+  box-shadow:
+    0 0 0 1.5px var(--pcolor),
+    0 0 18px color-mix(in srgb, var(--pcolor) 68%, transparent);
 }
 .opp.pickable {
   border-color: var(--neon-cyan);
-  background: rgba(46, 196, 182, 0.18);
+  background: rgba(46, 196, 182, 0.22);
   cursor: pointer;
   animation: pulse 0.65s infinite alternate;
 }
@@ -376,7 +394,16 @@ dialog::backdrop {
   opacity: 0.4;
 }
 .opp-avatar {
-  font-size: 1.65rem;
+  font-size: 1.45rem;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2.5px solid var(--pcolor);
+  background: color-mix(in srgb, var(--pcolor) 22%, #130726);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--pcolor) 50%, transparent);
   position: relative;
 }
 .badge-off,
@@ -384,20 +411,24 @@ dialog::backdrop {
   font-style: normal;
   font-size: 0.72rem;
   position: absolute;
-  right: -10px;
-  bottom: -2px;
+  right: -8px;
+  bottom: -4px;
 }
 .opp-name {
   font-size: 0.76rem;
-  font-weight: 700;
+  font-weight: 800;
+  color: var(--pcolor);
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 .opp-cards {
   font-size: 0.75rem;
-  color: var(--neon-orange);
+  color: #fff;
   font-weight: 800;
 }
 .opp-target {
@@ -1231,4 +1262,72 @@ dialog::backdrop {
   height: 100%;
   background: linear-gradient(90deg, var(--accent), #fff);
   animation: shrink 2s linear forwards;
+}
+
+/* ── Player Color Tags (in Log, Status & Hand Header) ── */
+.p-name-tag {
+  --pcolor: #38bdf8;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--pcolor);
+  font-weight: 800;
+  background: color-mix(in srgb, var(--pcolor) 16%, rgba(12, 5, 24, 0.7));
+  border: 1px solid color-mix(in srgb, var(--pcolor) 45%, transparent);
+  padding: 0 6px;
+  border-radius: 999px;
+  margin: 0 2px;
+  vertical-align: baseline;
+}
+
+.p-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pcolor);
+  box-shadow: 0 0 6px var(--pcolor);
+  flex-shrink: 0;
+}
+
+.my-hand-area {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.my-player-bar {
+  --pcolor: #38bdf8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--pcolor) 16%, rgba(20, 10, 40, 0.85)), rgba(20, 10, 40, 0.75));
+  border: 1px solid color-mix(in srgb, var(--pcolor) 45%, transparent);
+  font-size: 0.78rem;
+}
+
+.my-player-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.my-avatar-ring {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  border: 2px solid var(--pcolor);
+  background: color-mix(in srgb, var(--pcolor) 20%, #120724);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--pcolor) 50%, transparent);
+}
+
+.my-card-count {
+  font-weight: 800;
+  color: #fff;
 }

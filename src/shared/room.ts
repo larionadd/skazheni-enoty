@@ -1,6 +1,6 @@
 // A game room: lobby, members, bots, reconnect/autopilot and the running game.
 // Transport-agnostic: the Socket.IO server and the offline browser host both wrap this class.
-import { AVATARS, MAX_PLAYERS, MIN_PLAYERS } from './cards.ts';
+import { AVATARS, MAX_PLAYERS, MIN_PLAYERS, PLAYER_COLORS } from './cards.ts';
 import { botDecide, botName, botObserve, newBotMemory, type BotMemory } from './bots.ts';
 import {
   createGame,
@@ -259,6 +259,9 @@ export class Room {
     for (const m of this.members) {
       if (m.isBot) continue;
       const mine = events.filter((e) => !e.to || e.to.includes(m.id));
+      if (mine.some((e) => e.kind === 'gotCard')) {
+        this.pauseBotsUntil = Math.max(this.pauseBotsUntil, Date.now() + 2600);
+      }
       if (mine.length) this.cb.onEvents(m.id, mine);
     }
   }
@@ -280,12 +283,13 @@ export class Room {
       me: pid,
       hostId: this.hostId,
       offline: this.offline,
-      members: this.members.map((m) => {
+      members: this.members.map((m, idx) => {
         const p = g ? findPlayer(g, m.id) : undefined;
         return {
           id: m.id,
           name: m.name,
           avatar: m.avatar,
+          color: PLAYER_COLORS[idx % PLAYER_COLORS.length],
           isBot: m.isBot,
           connected: m.connected,
           alive: p?.alive,
@@ -295,7 +299,7 @@ export class Room {
       game: g
         ? {
             phase: g.phase,
-            hand: findPlayer(g, pid)?.hand ?? [],
+            hand: [...(findPlayer(g, pid)?.hand ?? [])],
             current: currentPlayer(g).id,
             turnsLeft: g.turnsLeft,
             nextPlayer: nextPlayerId(g),
@@ -316,7 +320,7 @@ export class Room {
             favor: g.favor,
             defuse: g.defuse && { playerId: g.defuse.playerId },
             winner: g.winner,
-            log: g.log.slice(-12),
+            log: [...g.log.slice(-12)],
           }
         : null,
     };

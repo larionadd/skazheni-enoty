@@ -46,10 +46,10 @@ export function App() {
     drawTimers.current = [];
   };
 
-  const startDrawReveal = useCallback((card: CardType, cardId?: number) => {
+  const startDrawReveal = useCallback((card: CardType, cardId?: number, label?: string) => {
     clearDrawTimers();
     const key = Date.now();
-    setDrawnCard({ card, cardId, phase: 'reveal', key });
+    setDrawnCard({ card, cardId, label, phase: 'reveal', key });
     const t1 = window.setTimeout(() => {
       setDrawnCard((prev) => (prev && prev.key === key ? { ...prev, phase: 'to-hand' } : prev));
     }, 2000);
@@ -111,18 +111,22 @@ export function App() {
           case 'future':
             setFuture(e.cards);
             break;
-          case 'gotCard':
+          case 'gotCard': {
             if (e.cardId !== undefined) {
               const cid = e.cardId;
               setLastNewCardId(cid);
               setTimeout(() => setLastNewCardId((curr) => (curr === cid ? null : curr)), 6500);
             }
-            if (e.reason === 'draw') {
-              startDrawReveal(e.card, e.cardId);
-            } else {
-              toast(`🎁 Ти отримав «${CARD_DEFS[e.card].title}» від ${nameOf(e.from ?? '')}`, 'good');
-            }
+            const fromName = nameOf(e.from ?? '');
+            const label =
+              e.reason === 'draw'
+                ? 'ВИТЯГНУТА КАРТА'
+                : e.reason === 'steal'
+                  ? `ПОЦУПЛЕНО В ${fromName}`
+                  : `ОТРИМАНО ВІД ${fromName}`;
+            startDrawReveal(e.card, e.cardId, label);
             break;
+          }
           case 'lostCard':
             toast(`😿 ${nameOf(e.taker)} забрав твою «${CARD_DEFS[e.card].title}»`, 'bad');
             break;

@@ -18,6 +18,7 @@ export interface MemberView {
   id: string;
   name: string;
   avatar: string;
+  color: string;
   isBot: boolean;
   connected: boolean;
   /** In-game info (absent in the lobby). */
