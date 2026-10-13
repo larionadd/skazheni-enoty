@@ -1,0 +1,35 @@
+{
+  "name": "skazheni-enoty",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Скажені Єноти: Нічний Дожор — мобільна онлайн карткова гра",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n server,client -c magenta,cyan \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "node --watch src/server/index.ts",
+    "dev:client": "vite --host",
+    "build": "tsc --noEmit && vite build",
+    "start": "node src/server/index.ts",
+    "images": "node scripts/prepare-images.mjs",
+    "test": "node src/shared/engine.test.ts"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "tsx": "^4.20.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.2.0",
+    "sharp": "^0.34.3",
+    "typescript": "^5.9.0",
+    "vite": "^7.1.0"
+  }
+}
