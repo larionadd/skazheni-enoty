@@ -151,7 +151,20 @@ export const CARD_DEFS: Record<CardType, CardDef> = {
 export const ACTION_TYPES: CardType[] = ['blame', 'bush', 'radar', 'shuffle', 'favor'];
 export const PAIR_TYPES: CardType[] = ['shawarma', 'baron', 'punk', 'hoodie'];
 
-export const AVATARS = ['🦝', '🐀', '🦨', '🦡', '🐿️', '🦊', '🐻', '🐼'];
+export const AVATARS = [
+  'avatars/raccoon-1.webp',
+  'avatars/raccoon-2.webp',
+  'avatars/raccoon-3.webp',
+  'avatars/raccoon-4.webp',
+  'avatars/raccoon-5.webp',
+];
+export const AVATAR_LABELS: Record<string, string> = {
+  'avatars/raccoon-1.webp': 'Ласун',
+  'avatars/raccoon-2.webp': 'Барон',
+  'avatars/raccoon-3.webp': 'Панк',
+  'avatars/raccoon-4.webp': 'Тінь',
+  'avatars/raccoon-5.webp': 'Кібер',
+};
 export const PLAYER_COLORS = ['#38bdf8', '#ff9f1c', '#c084fc', '#2dd4bf', '#fb7185'];
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 5;

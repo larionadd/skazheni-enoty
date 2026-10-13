@@ -135,11 +135,13 @@ export class Room {
         if (inGame) return 'Гра вже йде.';
         if (this.members.length >= MAX_PLAYERS) return 'Кімната заповнена.';
         const id = 'bot-' + randomId();
+        const usedAvatars = new Set(this.members.map((x) => x.avatar));
+        const freeAvatar = AVATARS.find((av) => !usedAvatars.has(av)) ?? AVATARS[this.members.length % AVATARS.length];
         this.members.push({
           id,
           token: '',
           name: botName(this.botCount++),
-          avatar: AVATARS[(this.members.length + 3) % AVATARS.length],
+          avatar: freeAvatar,
           isBot: true,
           connected: true,
           disconnectedAt: 0,

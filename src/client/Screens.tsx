@@ -1,7 +1,8 @@
 import { useState, type CSSProperties } from 'react';
-import { AVATARS, MAX_PLAYERS, MIN_PLAYERS, PLAYER_COLORS } from '../shared/cards.ts';
+import { AVATARS, AVATAR_LABELS, MAX_PLAYERS, MIN_PLAYERS, PLAYER_COLORS } from '../shared/cards.ts';
 import type { ClientAction, RoomView } from '../shared/protocol.ts';
 import { RulesModal } from './RulesModal.tsx';
+import { AvatarImg } from './ui.tsx';
 
 export interface Profile {
   name: string;
@@ -48,17 +49,19 @@ export function Home({
             onChange={(e) => setProfile({ ...profile, name: e.target.value })}
           />
         </label>
-        <div className="avatars" role="radiogroup" aria-label="Аватар">
+        <div className="avatars" role="radiogroup" aria-label="Обери свого єнота">
           {AVATARS.map((a) => (
             <button
               key={a}
               type="button"
               role="radio"
               aria-checked={profile.avatar === a}
+              aria-label={AVATAR_LABELS[a] ?? 'Єнот'}
               className={profile.avatar === a ? 'on' : ''}
               onClick={() => setProfile({ ...profile, avatar: a })}
             >
-              {a}
+              <AvatarImg src={a} />
+              <small>{AVATAR_LABELS[a]}</small>
             </button>
           ))}
         </div>
@@ -163,7 +166,9 @@ export function Lobby({ view, act }: { view: RoomView; act: (a: ClientAction) =>
             const pcolor = m.color || PLAYER_COLORS[idx % PLAYER_COLORS.length];
             return (
               <li key={m.id} className={m.connected ? '' : 'offline'} style={{ '--pcolor': pcolor } as CSSProperties}>
-                <span className="avatar">{m.avatar}</span>
+                <span className="avatar">
+                  <AvatarImg src={m.avatar} />
+                </span>
                 <span className="mname">
                   <i className="p-dot" aria-hidden />
                   {m.name}

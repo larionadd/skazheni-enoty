@@ -16,7 +16,12 @@ interface Toast {
 function loadProfile(): Profile {
   try {
     const p = JSON.parse(localStorage.getItem('enoty.profile') ?? 'null');
-    if (p?.name !== undefined) return p;
+    if (p?.name !== undefined) {
+      return {
+        name: p.name,
+        avatar: AVATARS.includes(p.avatar) ? p.avatar : AVATARS[0],
+      };
+    }
   } catch {
     /* ignore */
   }

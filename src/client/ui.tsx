@@ -1,5 +1,11 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
-import { CARD_DEFS, type CardType } from '../shared/cards.ts';
+import { AVATARS, CARD_DEFS, type CardType } from '../shared/cards.ts';
+
+export function AvatarImg({ src, dead }: { src?: string; dead?: boolean }) {
+  if (dead) return <span className="dead-skull">💀</span>;
+  const valid = src && AVATARS.includes(src) ? src : AVATARS[0];
+  return <img className="avatar-img" src={valid} alt="" draggable={false} decoding="async" />;
+}
 
 export function CardFace({
   type,
@@ -69,8 +75,8 @@ export function Modal({
     const d = ref.current;
     if (!d) return;
     if (open && !d.open) d.showModal();
-    if (!open && d.open) d.close();
   }, [open]);
+  if (!open) return null;
   return (
     <dialog
       ref={ref}
@@ -82,12 +88,8 @@ export function Modal({
       }}
       onClose={() => open && !mandatory && onClose?.()}
     >
-      {open && (
-        <>
-          <h2 id="modal-title">{title}</h2>
-          {children}
-        </>
-      )}
+      <h2 id="modal-title">{title}</h2>
+      {children}
     </dialog>
   );
 }

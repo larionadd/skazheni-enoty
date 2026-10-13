@@ -3,7 +3,7 @@ import { CARD_DEFS, PLAYER_COLORS, type CardType } from '../shared/cards.ts';
 import type { Card } from '../shared/engine.ts';
 import type { ClientAction, MemberView, RoomView } from '../shared/protocol.ts';
 import { RulesModal } from './RulesModal.tsx';
-import { CardFace, Modal } from './ui.tsx';
+import { AvatarImg, CardFace, Modal } from './ui.tsx';
 
 const ORDER = Object.keys(CARD_DEFS) as CardType[];
 
@@ -167,7 +167,7 @@ export function Game({
               disabled={!pickable}
             >
               <span className="opp-avatar">
-                {m.alive === false ? '💀' : m.avatar}
+                <AvatarImg src={m.avatar} dead={m.alive === false} />
                 {!m.connected && !m.isBot && <i className="badge-off">📵</i>}
                 {m.isBot && <i className="badge-bot">🤖</i>}
               </span>
@@ -290,7 +290,9 @@ export function Game({
         {meM && (
           <div className="my-player-bar" style={{ '--pcolor': meM.color || PLAYER_COLORS[0] } as CSSProperties}>
             <span className="my-player-id">
-              <span className="my-avatar-ring">{meM.avatar}</span>
+              <span className="my-avatar-ring">
+                <AvatarImg src={meM.avatar} />
+              </span>
               <span className="p-name-tag" style={{ '--pcolor': meM.color || PLAYER_COLORS[0] } as CSSProperties}>
                 <i className="p-dot" aria-hidden />
                 {meM.name} (ти)
