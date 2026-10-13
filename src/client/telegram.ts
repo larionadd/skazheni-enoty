@@ -135,7 +135,7 @@ export const tgHaptic = {
   },
 };
 
-export function shareTelegramRoom(code: string, botUsername = 'skazheni_enoty_bot'): void {
+export function shareTelegramRoom(code: string, botUsername = 'Crazyracoons_bot'): void {
   const tg = getTelegramWebApp();
   const text = `Гайда грати в «Скажені Єноти: Нічний Дожор» зі мною! 🦝🧨 Кімната: ${code}`;
   const shareUrl = `https://t.me/share/url?url=https://t.me/${botUsername}?startapp=room_${code}&text=${encodeURIComponent(text)}`;

@@ -1,5 +1,15 @@
 // Entrypoint for running the Telegram Bot
+import { existsSync, readFileSync } from 'node:fs';
 import { createTelegramBot } from './bot.ts';
+
+if (!process.env.BOT_TOKEN && existsSync('.env')) {
+  for (const line of readFileSync('.env', 'utf8').split(/\r?\n/)) {
+    const match = line.match(/^\s*([\w_]+)\s*=\s*(.*?)\s*$/);
+    if (match && !process.env[match[1]]) {
+      process.env[match[1]] = match[2];
+    }
+  }
+}
 
 const token = process.env.BOT_TOKEN;
 const webAppUrl = process.env.WEBAPP_URL || 'https://larionadd.github.io/skazheni-enoty/';
