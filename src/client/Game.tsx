@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CARD_DEFS, type CardType } from '../shared/cards.ts';
 import type { Card } from '../shared/engine.ts';
 import type { ClientAction, MemberView, RoomView } from '../shared/protocol.ts';
+import { RulesModal } from './RulesModal.tsx';
 import { CardFace, Modal } from './ui.tsx';
 
 const ORDER = Object.keys(CARD_DEFS) as CardType[];
@@ -43,7 +44,6 @@ export function Game({
   );
   const myTurn = g.phase === 'turn' && g.current === me && !g.pending;
 
-  // Drop selections that are no longer in hand / not our turn.
   useEffect(() => {
     setSelected((sel) => sel.filter((id) => g.hand.some((c) => c.id === id)));
     if (!myTurn) setTargeting(false);
@@ -80,22 +80,24 @@ export function Game({
     setTargeting(false);
   }
 
-  // ── nope window ──
   const p = g.pending;
   const hasNope = g.hand.some((c) => c.type === 'nope');
   const canNope = !!p && alive && hasNope && p.lastNopeBy !== me && !(p.nopes === 0 && p.by === me);
 
-  // ── status line ──
   let status: string;
   if (g.phase === 'over') status = `🏆 Переміг ${name(g.winner ?? undefined)}!`;
   else if (p) status = `${name(p.by)}: «${CARD_DEFS[p.type].title}»${p.target ? ` → ${name(p.target)}` : ''}`;
-  else if (g.phase === 'favor') status = g.favor?.giver === me ? 'Віддай одну карту!' : `${name(g.favor?.giver)} обирає карту для ${name(g.favor?.receiver)}…`;
-  else if (g.phase === 'defuse') status = g.defuse?.playerId === me ? 'Сховай Петарду!' : `${name(g.defuse?.playerId)} таємно ховає Петарду…`;
-  else if (myTurn) status = targeting ? '👆 Обери суперника вгорі' : `Твій хід${g.turnsLeft > 1 ? ` (ходів: ${g.turnsLeft})` : ''}: грай карти або тягни`;
+  else if (g.phase === 'favor')
+    status = g.favor?.giver === me ? 'Віддай одну карту!' : `${name(g.favor?.giver)} обирає карту для ${name(g.favor?.receiver)}…`;
+  else if (g.phase === 'defuse')
+    status = g.defuse?.playerId === me ? 'Сховай Петарду!' : `${name(g.defuse?.playerId)} таємно ховає Петарду…`;
+  else if (myTurn)
+    status = targeting ? '👆 Обери суперника вгорі' : `Твій хід${g.turnsLeft > 1 ? ` (ходів: ${g.turnsLeft})` : ''}: грай карти або тягни`;
   else status = `Ходить ${name(g.current)}${g.turnsLeft > 1 ? ` (ходів: ${g.turnsLeft})` : ''}`;
 
   const chance = g.deckCount ? Math.round((g.petardsInDeck / g.deckCount) * 100) : 0;
   const opponents = view.members.filter((m) => m.id !== me);
+  const recentLogs = g.log.slice(-3);
 
   return (
     <main className={`game${boom && !boom.saved ? ' shake' : ''}`}>
@@ -125,24 +127,25 @@ export function Game({
         })}
       </section>
 
-      {/* Table */}
+      {/* Table: Card Back Deck + Discard */}
       <section className="table">
-        <button
-          type="button"
-          className={`deck${myTurn && !targeting ? ' ready' : ''}`}
-          disabled={!myTurn || targeting}
-          onClick={() => {
-            setSelected([]);
-            act({ t: 'draw' });
-          }}
-          aria-label={`Тягнути карту з бака. Карт: ${g.deckCount}`}
-        >
-          <span className="deck-can" aria-hidden>
-            🗑️
-          </span>
-          <span className="deck-count">{g.deckCount} карт</span>
-          <span className={`deck-chance${chance >= 30 ? ' hot' : ''}`}>🧨 {chance}%</span>
-        </button>
+        <div className="deck-wrap">
+          <button
+            type="button"
+            className={`deck-card-stack${myTurn && !targeting ? ' ready' : ''}`}
+            disabled={!myTurn || targeting}
+            onClick={() => {
+              setSelected([]);
+              act({ t: 'draw' });
+            }}
+            aria-label={`Тягнути карту з колоди. Залишилось карт: ${g.deckCount}, шанс петарди: ${chance}%`}
+          >
+            <img className="deck-back-img" src="cards/back.webp" alt="Колода карт" draggable={false} />
+            <span className="deck-badge-top">{g.deckCount} карт</span>
+            <span className={`deck-badge-bottom${chance >= 30 ? ' hot' : ''}`}>🧨 {chance}%</span>
+          </button>
+        </div>
+
         <div className="discard" aria-label="Скинуті карти">
           {g.discardTop.length ? (
             g.discardTop.map((t, i) => (
@@ -156,9 +159,25 @@ export function Game({
         </div>
       </section>
 
-      <p className="status" role="status" aria-live="polite">
-        {status}
-      </p>
+      {/* Status + 3-line Live Center Log */}
+      <div className="center-feed">
+        <div className="status-row">
+          <p className="status" role="status" aria-live="polite">
+            {status}
+          </p>
+          <button className="icon-btn" aria-label="Правила гри" title="Правила гри" onClick={() => setRulesOpen(true)}>
+            📖
+          </button>
+        </div>
+
+        <button type="button" className="center-log" onClick={() => setLogOpen(true)} aria-label="Відкрити повний журнал ходів">
+          {recentLogs.map((line, i) => (
+            <div key={i} className={`center-log-line${i === recentLogs.length - 1 ? ' latest' : ''}`}>
+              {line}
+            </div>
+          ))}
+        </button>
+      </div>
 
       {/* Pending action + nope */}
       {p && (
@@ -185,35 +204,24 @@ export function Game({
       {!alive && g.phase !== 'over' && <p className="spectator">💥 Ти вилетів. Дивись, хто стане королем бака!</p>}
 
       {/* Action bar */}
-      <section className="actionbar">
-        {selDef ? (
-          <>
-            <p className="sel-rule">
-              <b>{selDef.title}:</b> {selDef.rule}
-            </p>
-            <div className="row">
-              {targeting ? (
-                <button className="btn btn-ghost" onClick={() => setTargeting(false)}>
-                  Скасувати
-                </button>
-              ) : (
-                <button className="btn btn-primary" disabled={!playable} onClick={play}>
-                  {selCards.length === 2 ? '🫳 Вкрасти парою' : selDef.pair ? 'Потрібна пара' : '▶ Зіграти'}
-                </button>
-              )}
-            </div>
-          </>
-        ) : (
-          <div className="row between">
-            <button className="btn btn-link small" onClick={() => setLogOpen(true)}>
-              📜 {g.log[g.log.length - 1] ?? 'Журнал'}
-            </button>
-            <button className="icon-btn" aria-label="Правила" onClick={() => setRulesOpen(true)}>
-              ❔
-            </button>
+      {selDef && (
+        <section className="actionbar">
+          <p className="sel-rule">
+            <b>{selDef.title}:</b> {selDef.rule}
+          </p>
+          <div className="row">
+            {targeting ? (
+              <button className="btn btn-ghost" onClick={() => setTargeting(false)}>
+                Скасувати
+              </button>
+            ) : (
+              <button className="btn btn-primary" disabled={!playable} onClick={play}>
+                {selCards.length === 2 ? '🫳 Вкрасти парою' : selDef.pair ? 'Потрібна пара однакових' : '▶ Зіграти'}
+              </button>
+            )}
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
       {/* Hand */}
       <section className={`hand${hand.length > 6 ? ' tight' : ''}`} aria-label="Твої карти">
@@ -264,31 +272,9 @@ export function Game({
         </button>
       </Modal>
 
-      <Modal open={rulesOpen} onClose={() => setRulesOpen(false)} title="Правила дожору" className="tall">
-        <p className="small">
-          У свій хід грай скільки завгодно карт, а потім тягни одну з бака. Витягнув <b>Петарду</b> без <b>Килимка</b> — вилітаєш. Останній
-          єнот перемагає.
-        </p>
-        <ul className="rules">
-          {(Object.keys(CARD_DEFS) as CardType[])
-            .filter((t, i, arr) => !CARD_DEFS[t].pair || arr.findIndex((x) => CARD_DEFS[x].pair) === i)
-            .map((t) => (
-              <li key={t}>
-                <CardFace type={t} size="sm" />
-                <span>
-                  <b>{CARD_DEFS[t].pair ? 'Єноти банди (4 види)' : CARD_DEFS[t].title}</b>
-                  <br />
-                  {CARD_DEFS[t].rule}
-                </span>
-              </li>
-            ))}
-        </ul>
-        <button className="btn btn-primary" onClick={() => setRulesOpen(false)}>
-          Зрозуміло
-        </button>
-      </Modal>
+      <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
 
-      <Modal open={logOpen} onClose={() => setLogOpen(false)} title="📜 Журнал" className="tall">
+      <Modal open={logOpen} onClose={() => setLogOpen(false)} title="📜 Повний журнал ходів" className="tall">
         <ol className="log">
           {[...g.log].reverse().map((l, i) => (
             <li key={i}>{l}</li>

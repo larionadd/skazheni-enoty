@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AVATARS, MAX_PLAYERS, MIN_PLAYERS } from '../shared/cards.ts';
 import type { ClientAction, RoomView } from '../shared/protocol.ts';
+import { RulesModal } from './RulesModal.tsx';
 
 export interface Profile {
   name: string;
@@ -26,6 +27,7 @@ export function Home({
 }) {
   const [code, setCode] = useState(initialCode);
   const [bots, setBots] = useState(3);
+  const [rulesOpen, setRulesOpen] = useState(false);
   const nameOk = profile.name.trim().length > 0;
 
   return (
@@ -111,6 +113,12 @@ export function Home({
           📴 Грати з ботами (без інтернету)
         </button>
       </section>
+
+      <button type="button" className="btn btn-rules btn-big" onClick={() => setRulesOpen(true)}>
+        📖 Правила гри та всі карти
+      </button>
+
+      <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
     </main>
   );
 }
@@ -118,9 +126,11 @@ export function Home({
 export function Lobby({ view, act }: { view: RoomView; act: (a: ClientAction) => void }) {
   const isHost = view.me === view.hostId;
   const [copied, setCopied] = useState(false);
-  const baseUrl = location.protocol.startsWith('http') && !location.hostname.includes('localhost')
-    ? `${location.origin}${location.pathname}`
-    : 'https://larionadd.github.io/skazheni-enoty/';
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const baseUrl =
+    location.protocol.startsWith('http') && !location.hostname.includes('localhost')
+      ? `${location.origin}${location.pathname}`
+      : 'https://larionadd.github.io/skazheni-enoty/';
   const link = `${baseUrl}?room=${view.code}`;
 
   async function share() {
@@ -130,7 +140,7 @@ export function Lobby({ view, act }: { view: RoomView; act: (a: ClientAction) =>
         await navigator.share({ title: 'Скажені Єноти', text, url: link });
         return;
       } catch {
-        /* user cancelled → fall back to copy */
+        /* user cancelled -> fall back to copy */
       }
     }
     await navigator.clipboard?.writeText(`${text}\n${link}`);
@@ -187,9 +197,15 @@ export function Lobby({ view, act }: { view: RoomView; act: (a: ClientAction) =>
       ) : (
         <p className="muted center">Чекаємо, поки господар почне гру…</p>
       )}
-      <button className="btn btn-link" onClick={() => act({ t: 'leave' })}>
-        Вийти з кімнати
-      </button>
+      <div className="row between">
+        <button className="btn btn-ghost small" onClick={() => setRulesOpen(true)}>
+          📖 Правила гри
+        </button>
+        <button className="btn btn-link" onClick={() => act({ t: 'leave' })}>
+          Вийти з кімнати
+        </button>
+      </div>
+      <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
     </main>
   );
 }

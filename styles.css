@@ -406,44 +406,96 @@ dialog::backdrop {
   min-height: 170px;
 }
 
-.deck {
-  height: 148px;
-  border-radius: 16px;
-  border: 2px dashed rgba(255, 255, 255, 0.25);
-  background: linear-gradient(160deg, #271946, #140b29);
+.deck-wrap {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+}
+
+.deck-card-stack {
+  position: relative;
+  width: 112px;
+  height: 156px;
+  padding: 0;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
   cursor: pointer;
+  transition: transform 0.16s ease, filter 0.16s ease;
 }
-.deck.ready {
-  border-style: solid;
-  border-color: var(--neon-orange);
-  box-shadow: 0 0 20px rgba(255, 159, 28, 0.45);
+.deck-card-stack::before,
+.deck-card-stack::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: #1c0c36;
+  border: 2px solid rgba(255, 159, 28, 0.45);
+  z-index: 0;
 }
-.deck-can {
-  font-size: 2.7rem;
+.deck-card-stack::before {
+  transform: translate(6px, 6px) rotate(3deg);
 }
-.deck-count {
-  font-weight: 800;
-  font-size: 0.92rem;
+.deck-card-stack::after {
+  transform: translate(3px, 3px) rotate(1.5deg);
 }
-.deck-chance {
-  font-size: 0.78rem;
-  padding: 2px 8px;
+.deck-card-stack.ready {
+  filter: drop-shadow(0 0 16px rgba(255, 159, 28, 0.65));
+  animation: pulse 0.9s infinite alternate;
+}
+.deck-card-stack:disabled {
+  cursor: default;
+  opacity: 0.88;
+}
+.deck-back-img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.65);
+}
+.deck-badge-top {
+  position: absolute;
+  z-index: 2;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #140726;
+  border: 1.5px solid var(--neon-orange);
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.74rem;
+  padding: 2px 9px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.09);
+  white-space: nowrap;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
 }
-.deck-chance.hot {
-  background: rgba(255, 59, 59, 0.28);
-  color: #ff9c9c;
+.deck-badge-bottom {
+  position: absolute;
+  z-index: 2;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #140726;
+  border: 1.5px solid var(--neon-cyan);
+  color: var(--text);
   font-weight: 800;
+  font-size: 0.74rem;
+  padding: 2px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+}
+.deck-badge-bottom.hot {
+  border-color: var(--danger);
+  background: #3b0714;
+  color: #ffb3b3;
 }
 
 .discard {
-  height: 148px;
+  height: 156px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -453,14 +505,52 @@ dialog::backdrop {
   position: absolute;
 }
 
+.center-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .status {
+  flex: 1;
   margin: 0;
   text-align: center;
   font-weight: 800;
-  font-size: 0.92rem;
-  padding: 6px 10px;
+  font-size: 0.9rem;
+  padding: 7px 10px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.center-log {
+  width: 100%;
+  text-align: left;
+  background: rgba(14, 7, 27, 0.78);
+  border: 1px solid rgba(160, 107, 255, 0.3);
+  border-radius: 12px;
+  padding: 7px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
+}
+.center-log-line {
+  font-size: 0.76rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.center-log-line.latest {
+  color: #fff;
+  font-weight: 700;
 }
 
 /* ── Pending / Nope bar ── */
@@ -743,3 +833,160 @@ dialog::backdrop {
     transform: scale(1.04);
   }
 }
+
+/* ── Rules Button & Full Illustrated Rules Modal ── */
+.btn-rules {
+  background: linear-gradient(135deg, rgba(160, 107, 255, 0.28), rgba(46, 196, 182, 0.25));
+  border: 1.5px solid rgba(160, 107, 255, 0.55);
+  color: #fff;
+}
+
+.rules-modal {
+  width: min(95vw, 460px);
+  max-height: 88dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+.rules-scroll {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-right: 4px;
+  margin-bottom: 12px;
+}
+
+.rules-sec {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 12px;
+}
+.rules-sec h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  color: var(--neon-orange);
+}
+.rules-sec p {
+  margin: 0 0 8px;
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+.rules-bullets {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.step-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 9px 10px;
+  border-radius: 11px;
+}
+.step-num {
+  background: var(--neon-pink);
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.step-item b {
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 3px;
+}
+.step-item p {
+  margin: 0;
+  font-size: 0.79rem;
+  color: var(--muted);
+}
+
+.vs-box {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.vs-card {
+  padding: 9px;
+  border-radius: 11px;
+  font-size: 0.78rem;
+}
+.vs-card b {
+  display: block;
+  margin-bottom: 4px;
+}
+.vs-card p {
+  margin: 0;
+  font-size: 0.75rem;
+}
+.vs-card.good {
+  background: rgba(57, 211, 83, 0.12);
+  border: 1px solid rgba(57, 211, 83, 0.4);
+}
+.vs-card.bad {
+  background: rgba(255, 59, 59, 0.12);
+  border: 1px solid rgba(255, 59, 59, 0.4);
+}
+
+.rules-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rules-card-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.28);
+  padding: 8px;
+  border-radius: 12px;
+}
+.rules-card-info {
+  flex: 1;
+}
+.rules-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+.rules-cat {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--neon-cyan);
+}
+.rules-count {
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+.rules-card-info h4 {
+  margin: 0 0 3px;
+  font-size: 0.9rem;
+}
+.rules-card-info p {
+  margin: 0;
+  font-size: 0.76rem;
+  color: #ddd2f8;
+  line-height: 1.32;
+}
+

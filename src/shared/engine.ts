@@ -127,7 +127,9 @@ export function createGame(players: NewPlayer[], opts: Partial<GameOptions> = {}
 
   state.nextId = nextId;
   state.current = Math.floor(Math.random() * n);
-  addLog(state, `🦝 Нічний дожор почався! Петард у баку: ${n - 1}.`);
+  addLog(state, `🦝 Нічний дожір почався! У всіх по 1 Килимку та ${o.handSize} карт.`);
+  addLog(state, `🧨 У колоді заховано Петард: ${n - 1} шт.`);
+  addLog(state, `🐾 Першим ходить ${currentPlayer(state).name}!`);
   emit(state, { kind: 'turn', player: currentPlayer(state).id, turns: 1 });
   return state;
 }
