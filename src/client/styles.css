@@ -26,7 +26,13 @@ html,
 body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  height: 100dvh;
   min-height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
   background-color: #0e061c;
   background-image:
     radial-gradient(circle at 50% 15%, rgba(255, 159, 28, 0.16) 0%, transparent 48%),
@@ -37,6 +43,16 @@ body {
   background-attachment: fixed;
   color: var(--text);
   user-select: none;
+  -webkit-user-select: none;
+}
+
+#root {
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 button,
@@ -45,30 +61,18 @@ input {
   color: inherit;
 }
 
-/* ── Modern Web Guidance: prevent page scroll under modal <dialog> ── */
-dialog:not([open]) {
-  display: none !important;
-}
-
-dialog:modal {
-  overscroll-behavior: contain;
-}
-
-dialog::backdrop {
-  overflow: hidden;
-  overscroll-behavior: contain;
-  background: rgba(8, 3, 18, 0.78);
-  backdrop-filter: blur(5px);
-}
-
 .app {
   max-width: 480px;
-  min-height: 100dvh;
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  padding: env(safe-area-inset-top, 8px) 12px env(safe-area-inset-bottom, 12px);
+  padding: env(safe-area-inset-top, 4px) 10px env(safe-area-inset-bottom, 6px);
   position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* ── Topbar ── */
@@ -400,32 +404,36 @@ dialog::backdrop {
   color: #ff9c9c;
 }
 
-/* ── Game table ── */
+/* ── Game table (100% single screen fit, zero scroll) ── */
 .game {
   flex: 1;
+  min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 8px;
+  gap: 4px;
+  overflow: hidden;
 }
 
 .opponents {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(68px, 1fr));
+  gap: 5px;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .opp {
   --pcolor: #38bdf8;
   background: linear-gradient(180deg, color-mix(in srgb, var(--pcolor) 14%, rgba(22, 11, 42, 0.9)), rgba(16, 8, 32, 0.94));
-  border: 2px solid color-mix(in srgb, var(--pcolor) 48%, rgba(255, 255, 255, 0.14));
-  border-radius: 16px;
-  padding: 8px 5px 6px;
+  border: 1.5px solid color-mix(in srgb, var(--pcolor) 48%, rgba(255, 255, 255, 0.14));
+  border-radius: 13px;
+  padding: 4px 3px 2px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   position: relative;
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -433,7 +441,7 @@ dialog::backdrop {
   border-color: var(--pcolor);
   box-shadow:
     0 0 0 1.5px var(--pcolor),
-    0 0 18px color-mix(in srgb, var(--pcolor) 68%, transparent);
+    0 0 14px color-mix(in srgb, var(--pcolor) 68%, transparent);
 }
 .opp.pickable {
   border-color: var(--neon-cyan);
@@ -449,16 +457,16 @@ dialog::backdrop {
   border-color: #64748b;
 }
 .opp-avatar {
-  width: 62px;
-  height: 62px;
+  width: clamp(40px, 6.4vh, 54px);
+  height: clamp(40px, 6.4vh, 54px);
   aspect-ratio: 1 / 1;
-  border-radius: 12px;
+  border-radius: 11px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 2.5px solid var(--pcolor);
+  border: 2px solid var(--pcolor);
   background: color-mix(in srgb, var(--pcolor) 22%, #130726);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--pcolor) 50%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--pcolor) 50%, transparent);
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
@@ -467,25 +475,25 @@ dialog::backdrop {
   width: 100%;
   height: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 9px;
+  border-radius: 8px;
   object-fit: cover;
 }
 .badge-off,
 .badge-bot {
   font-style: normal;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   position: absolute;
   right: 2px;
   bottom: 2px;
   background: rgba(15, 6, 30, 0.92);
-  border-radius: 6px;
-  padding: 1px 4px;
+  border-radius: 5px;
+  padding: 1px 3px;
   border: 1px solid rgba(255, 255, 255, 0.25);
   line-height: 1;
   z-index: 2;
 }
 .opp-name {
-  font-size: 0.76rem;
+  font-size: 0.68rem;
   font-weight: 800;
   color: var(--pcolor);
   max-width: 100%;
@@ -494,30 +502,32 @@ dialog::backdrop {
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 .opp-cards {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   color: #fff;
   font-weight: 800;
 }
 .opp-target {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 3px;
+  right: 3px;
 }
 
-/* ── Center Table (Card Back Deck + Discard, +15% proportional scale) ── */
+/* ── Center Table (Card Back Deck + Discard) ── */
 .table {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 10px;
   align-items: center;
-  padding: 14px 12px;
-  border-radius: 22px;
+  padding: 8px 10px;
+  border-radius: 18px;
   background: radial-gradient(circle at 50% 50%, rgba(160, 107, 255, 0.16), rgba(16, 9, 30, 0.85));
   border: 1.5px solid rgba(160, 107, 255, 0.35);
-  min-height: 196px;
+  flex: 1;
+  min-height: 0;
+  max-height: clamp(120px, 22vh, 165px);
 }
 
 .deck-wrap {
@@ -528,11 +538,11 @@ dialog::backdrop {
 
 .deck-card-stack {
   position: relative;
-  width: 129px;
-  height: 180px;
+  height: clamp(105px, 18.5vh, 146px);
+  width: calc(clamp(105px, 18.5vh, 146px) * 0.71);
   padding: 0;
   border: none;
-  border-radius: 16px;
+  border-radius: 14px;
   background: transparent;
   cursor: pointer;
   transition: transform 0.16s ease, filter 0.16s ease;
@@ -542,19 +552,19 @@ dialog::backdrop {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 16px;
+  border-radius: 14px;
   background: #1c0c36;
   border: 2px solid rgba(255, 159, 28, 0.45);
   z-index: 0;
 }
 .deck-card-stack::before {
-  transform: translate(7px, 7px) rotate(3deg);
+  transform: translate(5px, 5px) rotate(3deg);
 }
 .deck-card-stack::after {
-  transform: translate(3.5px, 3.5px) rotate(1.5deg);
+  transform: translate(2.5px, 2.5px) rotate(1.5deg);
 }
 .deck-card-stack.ready {
-  filter: drop-shadow(0 0 18px rgba(255, 159, 28, 0.65));
+  filter: drop-shadow(0 0 16px rgba(255, 159, 28, 0.65));
   animation: pulse 0.9s infinite alternate;
 }
 .deck-card-stack:disabled {
@@ -567,21 +577,21 @@ dialog::backdrop {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 16px;
-  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.65);
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.65);
 }
 .deck-badge-top {
   position: absolute;
   z-index: 2;
-  top: -9px;
+  top: -8px;
   left: 50%;
   transform: translateX(-50%);
   background: #140726;
   border: 1.5px solid var(--neon-orange);
   color: #fff;
   font-weight: 900;
-  font-size: 0.85rem;
-  padding: 2px 10px;
+  font-size: 0.75rem;
+  padding: 1px 8px;
   border-radius: 999px;
   white-space: nowrap;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
@@ -589,15 +599,15 @@ dialog::backdrop {
 .deck-badge-bottom {
   position: absolute;
   z-index: 2;
-  bottom: -9px;
+  bottom: -8px;
   left: 50%;
   transform: translateX(-50%);
   background: #140726;
   border: 1.5px solid var(--neon-cyan);
   color: var(--text);
   font-weight: 800;
-  font-size: 0.85rem;
-  padding: 2px 10px;
+  font-size: 0.75rem;
+  padding: 1px 8px;
   border-radius: 999px;
   white-space: nowrap;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
@@ -609,11 +619,14 @@ dialog::backdrop {
 }
 
 .discard {
-  height: 180px;
+  height: clamp(105px, 18.5vh, 146px);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+}
+.discard-card {
+  position: absolute;
 }
 .discard-card {
   position: absolute;
@@ -719,98 +732,123 @@ dialog::backdrop {
   }
 }
 
-/* ── Cards (+15% proportional scale) ── */
+/* ── Cards (+15% proportional scale with responsive mobile clamp) ── */
 .card {
   --accent: #ff9f1c;
-  width: 129px;
-  height: 182px;
-  border-radius: 16px;
-  border: 2.5px solid var(--accent);
+  width: clamp(86px, 14.5vh, 118px);
+  height: clamp(122px, 20.5vh, 166px);
+  border-radius: 14px;
+  border: 2px solid var(--accent);
   background: linear-gradient(180deg, #24153f 0%, #120924 100%);
-  padding: 6px;
+  padding: 4px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   text-align: center;
-  box-shadow: 0 7px 16px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.55);
   flex-shrink: 0;
   transition: transform 0.16s ease, box-shadow 0.16s ease;
   cursor: pointer;
+  user-select: none;
 }
 .card-sm {
-  width: 95px;
-  height: 129px;
-  padding: 5px;
-  border-radius: 13px;
+  width: clamp(70px, 11.5vh, 90px);
+  height: clamp(98px, 16vh, 126px);
+  padding: 3px;
+  border-radius: 12px;
 }
 .card.selected {
-  transform: translateY(-18px) scale(1.05);
-  box-shadow: 0 14px 26px rgba(255, 159, 28, 0.55);
+  transform: translateY(-12px) scale(1.04);
+  box-shadow: 0 10px 22px rgba(255, 159, 28, 0.55);
 }
 .card-title {
-  font-size: 0.78rem;
+  font-size: clamp(0.64rem, 1.35vh, 0.74rem);
   font-weight: 900;
   line-height: 1.1;
   color: #fff;
   background: rgba(0, 0, 0, 0.45);
-  padding: 3px 5px;
-  border-radius: 7px;
+  padding: 2px 4px;
+  border-radius: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .card-sm .card-title {
-  font-size: 0.67rem;
+  font-size: clamp(0.56rem, 1.2vh, 0.65rem);
 }
 .card-art {
   width: 100%;
-  height: 95px;
+  height: clamp(52px, 9.2vh, 80px);
   object-fit: cover;
-  border-radius: 9px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 .card-sm .card-art {
-  height: 78px;
+  height: clamp(42px, 7.2vh, 62px);
 }
 .card-text {
-  font-size: 0.67rem;
+  font-size: clamp(0.58rem, 1.2vh, 0.66rem);
   line-height: 1.12;
   color: #e4dbff;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* ── Hand & Actionbar ── */
 .actionbar {
-  min-height: 44px;
+  min-height: 38px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  flex-shrink: 0;
 }
 .sel-rule {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--muted);
   text-align: center;
 }
 
 .hand {
   display: flex;
-  gap: 9px;
+  gap: 8px;
   overflow-x: auto;
-  padding: 22px 6px 8px;
+  overflow-y: hidden;
+  padding: 14px 6px 4px;
   scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  flex-shrink: 0;
+  height: clamp(124px, 21vh, 170px);
+  box-sizing: border-box;
 }
 .hand.tight .card:not(:first-child) {
-  margin-left: -20px;
+  margin-left: -18px;
 }
 
-/* ── Modals ── */
+/* ── Modals (Centrally positioned fixed overlays) ── */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100dvh;
+  z-index: 100000;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(8, 3, 18, 0.78);
-  backdrop-filter: blur(5px);
-  padding: 16px;
+  background: rgba(8, 3, 18, 0.84);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: env(safe-area-inset-top, 14px) 14px env(safe-area-inset-bottom, 14px);
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   animation: fadeIn 0.18s ease-out;
 }
 .modal {
@@ -818,16 +856,19 @@ dialog::backdrop {
   border-radius: 20px;
   background: #1a0f30;
   color: var(--text);
-  padding: 18px;
-  width: min(92vw, 420px);
-  max-height: 84dvh;
+  padding: 16px;
+  width: min(92vw, 400px);
+  max-height: min(84dvh, 560px);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(160, 107, 255, 0.2);
   display: flex;
   flex-direction: column;
+  margin: auto;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 .modal h2 {
-  margin: 0 0 12px;
-  font-size: 1.15rem;
+  margin: 0 0 10px;
+  font-size: 1.1rem;
 }
 .modal-title-with-icon {
   display: inline-flex;
@@ -838,27 +879,27 @@ dialog::backdrop {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  margin: 16px 0 20px;
+  gap: 8px;
+  margin: 10px 0 14px;
 }
 .game-over-avatar-wrap {
   position: relative;
-  width: 90px;
-  height: 90px;
-  border-radius: 18px;
-  border: 3.5px solid var(--neon-orange);
-  box-shadow: 0 0 25px rgba(255, 159, 28, 0.6);
+  width: clamp(64px, 11vh, 82px);
+  height: clamp(64px, 11vh, 82px);
+  border-radius: 16px;
+  border: 3px solid var(--neon-orange);
+  box-shadow: 0 0 20px rgba(255, 159, 28, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   background: #15082a;
 }
 .game-over-avatar-wrap .avatar-img {
-  border-radius: 14px;
+  border-radius: 13px;
 }
 .game-over-crown {
   position: absolute;
-  top: -20px;
+  top: -18px;
   filter: drop-shadow(0 0 8px #ffd166);
   animation: floatBounce 1.5s ease-in-out infinite alternate;
 }
@@ -1146,30 +1187,27 @@ dialog::backdrop {
   animation-delay: 0.18s;
 }
 .comic-word.w3 {
-  bottom: 12px;
-  left: -10px;
-  font-size: 2.2rem;
-  padding: 0;
-  border: none;
-  box-shadow: none;
+  bottom: 8px;
+  left: -12px;
+  background: #e91e63;
+  color: #fff;
+  transform: rotate(-10deg);
   animation-delay: 0.22s;
 }
 .comic-word.w4 {
-  bottom: 18px;
-  right: -8px;
-  font-size: 2.2rem;
-  padding: 0;
-  border: none;
-  box-shadow: none;
+  bottom: 6px;
+  right: -10px;
+  background: #00e676;
+  color: #111;
+  transform: rotate(14deg);
   animation-delay: 0.26s;
 }
 .comic-word.w5 {
-  top: 48%;
-  left: -20px;
-  font-size: 2rem;
-  padding: 0;
-  border: none;
-  box-shadow: none;
+  top: 45%;
+  left: -18px;
+  background: #00e5ff;
+  color: #111;
+  transform: rotate(-8deg);
   animation-delay: 0.3s;
 }
 @keyframes popSpark {

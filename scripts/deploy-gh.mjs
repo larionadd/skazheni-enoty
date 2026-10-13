@@ -1,6 +1,6 @@
 // Automated GitHub + GitHub Pages deployment script.
 import { spawnSync, execSync } from 'node:child_process';
-import { writeFileSync, existsSync } from 'node:fs';
+import { writeFileSync, copyFileSync, existsSync } from 'node:fs';
 
 const cred = spawnSync('git', ['credential', 'fill'], {
   input: 'protocol=https\nhost=github.com\n\n',
@@ -33,6 +33,13 @@ const createRes = await fetch('https://api.github.com/user/repos', {
   }),
 });
 console.log('Repo check/create HTTP:', createRes.status);
+
+// 1.5. Sync styles and build dist/
+copyFileSync('src/client/styles.css', 'public/styles.css');
+copyFileSync('src/client/styles.css', 'styles.css');
+console.log('Building project with Vite...');
+execSync('npm.cmd run build', { stdio: 'inherit' });
+copyFileSync('src/client/styles.css', 'dist/styles.css');
 
 // 2. Ensure .nojekyll in dist/
 writeFileSync('dist/.nojekyll', '');

@@ -26,7 +26,13 @@ html,
 body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  height: 100dvh;
   min-height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
   background-color: #0e061c;
   background-image:
     radial-gradient(circle at 50% 15%, rgba(255, 159, 28, 0.16) 0%, transparent 48%),
@@ -37,6 +43,16 @@ body {
   background-attachment: fixed;
   color: var(--text);
   user-select: none;
+  -webkit-user-select: none;
+}
+
+#root {
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 button,
@@ -45,30 +61,18 @@ input {
   color: inherit;
 }
 
-/* ── Modern Web Guidance: prevent page scroll under modal <dialog> ── */
-dialog:not([open]) {
-  display: none !important;
-}
-
-dialog:modal {
-  overscroll-behavior: contain;
-}
-
-dialog::backdrop {
-  overflow: hidden;
-  overscroll-behavior: contain;
-  background: rgba(8, 3, 18, 0.78);
-  backdrop-filter: blur(5px);
-}
-
 .app {
   max-width: 480px;
-  min-height: 100dvh;
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  padding: env(safe-area-inset-top, 8px) 12px env(safe-area-inset-bottom, 12px);
+  padding: env(safe-area-inset-top, 4px) 10px env(safe-area-inset-bottom, 6px);
   position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* ── Topbar ── */
@@ -216,9 +220,10 @@ dialog::backdrop {
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .avatars button .avatar-img {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
+  width: 58px;
+  height: 58px;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
   object-fit: cover;
   border: 2px solid rgba(255, 255, 255, 0.25);
 }
@@ -243,7 +248,8 @@ dialog::backdrop {
 .avatar-img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
+  aspect-ratio: 1 / 1;
+  border-radius: inherit;
   object-fit: cover;
   display: block;
 }
@@ -359,16 +365,25 @@ dialog::backdrop {
   border-radius: 12px;
 }
 .members .avatar {
-  font-size: 1.35rem;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: 2px solid var(--pcolor);
   background: color-mix(in srgb, var(--pcolor) 18%, #120724);
   box-shadow: 0 0 10px color-mix(in srgb, var(--pcolor) 45%, transparent);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.members .avatar .avatar-img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  object-fit: cover;
 }
 .members .mname {
   flex: 1;
@@ -389,38 +404,44 @@ dialog::backdrop {
   color: #ff9c9c;
 }
 
-/* ── Game table ── */
+/* ── Game table (100% single screen fit, zero scroll) ── */
 .game {
   flex: 1;
+  min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 8px;
+  gap: 4px;
+  overflow: hidden;
 }
 
 .opponents {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(68px, 1fr));
+  gap: 5px;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .opp {
   --pcolor: #38bdf8;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--pcolor) 14%, rgba(22, 11, 42, 0.9)), rgba(16, 8, 32, 0.92));
-  border: 2px solid color-mix(in srgb, var(--pcolor) 48%, rgba(255, 255, 255, 0.14));
-  border-radius: 14px;
-  padding: 6px 4px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--pcolor) 14%, rgba(22, 11, 42, 0.9)), rgba(16, 8, 32, 0.94));
+  border: 1.5px solid color-mix(in srgb, var(--pcolor) 48%, rgba(255, 255, 255, 0.14));
+  border-radius: 13px;
+  padding: 4px 3px 2px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   position: relative;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .opp.turn {
   border-color: var(--pcolor);
   box-shadow:
     0 0 0 1.5px var(--pcolor),
-    0 0 18px color-mix(in srgb, var(--pcolor) 68%, transparent);
+    0 0 14px color-mix(in srgb, var(--pcolor) 68%, transparent);
 }
 .opp.pickable {
   border-color: var(--neon-cyan);
@@ -429,31 +450,50 @@ dialog::backdrop {
   animation: pulse 0.65s infinite alternate;
 }
 .opp.dead {
-  opacity: 0.4;
+  opacity: 0.45;
+}
+.opp.dead .opp-avatar {
+  filter: grayscale(0.8) brightness(0.65);
+  border-color: #64748b;
 }
 .opp-avatar {
-  font-size: 1.45rem;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
+  width: clamp(40px, 6.4vh, 54px);
+  height: clamp(40px, 6.4vh, 54px);
+  aspect-ratio: 1 / 1;
+  border-radius: 11px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 2.5px solid var(--pcolor);
+  border: 2px solid var(--pcolor);
   background: color-mix(in srgb, var(--pcolor) 22%, #130726);
   box-shadow: 0 0 10px color-mix(in srgb, var(--pcolor) 50%, transparent);
   position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.opp-avatar .avatar-img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  object-fit: cover;
 }
 .badge-off,
 .badge-bot {
   font-style: normal;
   font-size: 0.72rem;
   position: absolute;
-  right: -8px;
-  bottom: -4px;
+  right: 2px;
+  bottom: 2px;
+  background: rgba(15, 6, 30, 0.92);
+  border-radius: 5px;
+  padding: 1px 3px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  line-height: 1;
+  z-index: 2;
 }
 .opp-name {
-  font-size: 0.76rem;
+  font-size: 0.68rem;
   font-weight: 800;
   color: var(--pcolor);
   max-width: 100%;
@@ -462,30 +502,32 @@ dialog::backdrop {
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 .opp-cards {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   color: #fff;
   font-weight: 800;
 }
 .opp-target {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 3px;
+  right: 3px;
 }
 
-/* ── Center Table (Card Back Deck + Discard, +15% proportional scale) ── */
+/* ── Center Table (Card Back Deck + Discard) ── */
 .table {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 10px;
   align-items: center;
-  padding: 14px 12px;
-  border-radius: 22px;
+  padding: 8px 10px;
+  border-radius: 18px;
   background: radial-gradient(circle at 50% 50%, rgba(160, 107, 255, 0.16), rgba(16, 9, 30, 0.85));
   border: 1.5px solid rgba(160, 107, 255, 0.35);
-  min-height: 196px;
+  flex: 1;
+  min-height: 0;
+  max-height: clamp(120px, 22vh, 165px);
 }
 
 .deck-wrap {
@@ -496,11 +538,11 @@ dialog::backdrop {
 
 .deck-card-stack {
   position: relative;
-  width: 129px;
-  height: 180px;
+  height: clamp(105px, 18.5vh, 146px);
+  width: calc(clamp(105px, 18.5vh, 146px) * 0.71);
   padding: 0;
   border: none;
-  border-radius: 16px;
+  border-radius: 14px;
   background: transparent;
   cursor: pointer;
   transition: transform 0.16s ease, filter 0.16s ease;
@@ -510,19 +552,19 @@ dialog::backdrop {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 16px;
+  border-radius: 14px;
   background: #1c0c36;
   border: 2px solid rgba(255, 159, 28, 0.45);
   z-index: 0;
 }
 .deck-card-stack::before {
-  transform: translate(7px, 7px) rotate(3deg);
+  transform: translate(5px, 5px) rotate(3deg);
 }
 .deck-card-stack::after {
-  transform: translate(3.5px, 3.5px) rotate(1.5deg);
+  transform: translate(2.5px, 2.5px) rotate(1.5deg);
 }
 .deck-card-stack.ready {
-  filter: drop-shadow(0 0 18px rgba(255, 159, 28, 0.65));
+  filter: drop-shadow(0 0 16px rgba(255, 159, 28, 0.65));
   animation: pulse 0.9s infinite alternate;
 }
 .deck-card-stack:disabled {
@@ -535,21 +577,21 @@ dialog::backdrop {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 16px;
-  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.65);
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.65);
 }
 .deck-badge-top {
   position: absolute;
   z-index: 2;
-  top: -9px;
+  top: -8px;
   left: 50%;
   transform: translateX(-50%);
   background: #140726;
   border: 1.5px solid var(--neon-orange);
   color: #fff;
   font-weight: 900;
-  font-size: 0.85rem;
-  padding: 2px 10px;
+  font-size: 0.75rem;
+  padding: 1px 8px;
   border-radius: 999px;
   white-space: nowrap;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
@@ -557,15 +599,15 @@ dialog::backdrop {
 .deck-badge-bottom {
   position: absolute;
   z-index: 2;
-  bottom: -9px;
+  bottom: -8px;
   left: 50%;
   transform: translateX(-50%);
   background: #140726;
   border: 1.5px solid var(--neon-cyan);
   color: var(--text);
   font-weight: 800;
-  font-size: 0.85rem;
-  padding: 2px 10px;
+  font-size: 0.75rem;
+  padding: 1px 8px;
   border-radius: 999px;
   white-space: nowrap;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
@@ -577,11 +619,14 @@ dialog::backdrop {
 }
 
 .discard {
-  height: 180px;
+  height: clamp(105px, 18.5vh, 146px);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+}
+.discard-card {
+  position: absolute;
 }
 .discard-card {
   position: absolute;
@@ -687,100 +732,188 @@ dialog::backdrop {
   }
 }
 
-/* ── Cards (+15% proportional scale) ── */
+/* ── Cards (+15% proportional scale with responsive mobile clamp) ── */
 .card {
   --accent: #ff9f1c;
-  width: 129px;
-  height: 182px;
-  border-radius: 16px;
-  border: 2.5px solid var(--accent);
+  width: clamp(86px, 14.5vh, 118px);
+  height: clamp(122px, 20.5vh, 166px);
+  border-radius: 14px;
+  border: 2px solid var(--accent);
   background: linear-gradient(180deg, #24153f 0%, #120924 100%);
-  padding: 6px;
+  padding: 4px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   text-align: center;
-  box-shadow: 0 7px 16px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.55);
   flex-shrink: 0;
   transition: transform 0.16s ease, box-shadow 0.16s ease;
   cursor: pointer;
+  user-select: none;
 }
 .card-sm {
-  width: 95px;
-  height: 129px;
-  padding: 5px;
-  border-radius: 13px;
+  width: clamp(70px, 11.5vh, 90px);
+  height: clamp(98px, 16vh, 126px);
+  padding: 3px;
+  border-radius: 12px;
 }
 .card.selected {
-  transform: translateY(-18px) scale(1.05);
-  box-shadow: 0 14px 26px rgba(255, 159, 28, 0.55);
+  transform: translateY(-12px) scale(1.04);
+  box-shadow: 0 10px 22px rgba(255, 159, 28, 0.55);
 }
 .card-title {
-  font-size: 0.78rem;
+  font-size: clamp(0.64rem, 1.35vh, 0.74rem);
   font-weight: 900;
   line-height: 1.1;
   color: #fff;
   background: rgba(0, 0, 0, 0.45);
-  padding: 3px 5px;
-  border-radius: 7px;
+  padding: 2px 4px;
+  border-radius: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .card-sm .card-title {
-  font-size: 0.67rem;
+  font-size: clamp(0.56rem, 1.2vh, 0.65rem);
 }
 .card-art {
   width: 100%;
-  height: 95px;
+  height: clamp(52px, 9.2vh, 80px);
   object-fit: cover;
-  border-radius: 9px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 .card-sm .card-art {
-  height: 78px;
+  height: clamp(42px, 7.2vh, 62px);
 }
 .card-text {
-  font-size: 0.67rem;
+  font-size: clamp(0.58rem, 1.2vh, 0.66rem);
   line-height: 1.12;
   color: #e4dbff;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* ── Hand & Actionbar ── */
 .actionbar {
-  min-height: 44px;
+  min-height: 38px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  flex-shrink: 0;
 }
 .sel-rule {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--muted);
   text-align: center;
 }
 
 .hand {
   display: flex;
-  gap: 9px;
+  gap: 8px;
   overflow-x: auto;
-  padding: 22px 6px 8px;
+  overflow-y: hidden;
+  padding: 14px 6px 4px;
   scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  flex-shrink: 0;
+  height: clamp(124px, 21vh, 170px);
+  box-sizing: border-box;
 }
 .hand.tight .card:not(:first-child) {
-  margin-left: -20px;
+  margin-left: -18px;
 }
 
-/* ── Modals ── */
+/* ── Modals (Centrally positioned fixed overlays) ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100dvh;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 3, 18, 0.84);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: env(safe-area-inset-top, 14px) 14px env(safe-area-inset-bottom, 14px);
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  animation: fadeIn 0.18s ease-out;
+}
 .modal {
   border: 1.5px solid var(--panel-border);
   border-radius: 20px;
   background: #1a0f30;
   color: var(--text);
-  padding: 18px;
-  width: min(92vw, 420px);
-  max-height: 84dvh;
+  padding: 16px;
+  width: min(92vw, 400px);
+  max-height: min(84dvh, 560px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(160, 107, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 .modal h2 {
-  margin: 0 0 12px;
-  font-size: 1.15rem;
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+}
+.modal-title-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.game-over-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+.game-over-avatar-wrap {
+  position: relative;
+  width: clamp(64px, 11vh, 82px);
+  height: clamp(64px, 11vh, 82px);
+  border-radius: 16px;
+  border: 3px solid var(--neon-orange);
+  box-shadow: 0 0 20px rgba(255, 159, 28, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #15082a;
+}
+.game-over-avatar-wrap .avatar-img {
+  border-radius: 13px;
+}
+.game-over-crown {
+  position: absolute;
+  top: -18px;
+  filter: drop-shadow(0 0 8px #ffd166);
+  animation: floatBounce 1.5s ease-in-out infinite alternate;
+}
+@keyframes floatBounce {
+  0% { transform: translateY(0) rotate(-3deg); }
+  100% { transform: translateY(-5px) rotate(3deg); }
+}
+.game-over-tagline {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #ffe169;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+  margin: 0;
+  text-align: center;
 }
 .grid {
   display: flex;
@@ -889,23 +1022,310 @@ dialog::backdrop {
   border-color: var(--neon-green);
 }
 
-.boom {
+/* ── Comic "BOOM" Explosion Animation ── */
+.comic-boom-overlay {
   position: fixed;
   inset: 0;
+  z-index: 999999;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  background: rgba(15, 4, 25, 0.82);
-  z-index: 40;
-  font-size: 1.3rem;
-  text-align: center;
-  padding: 20px;
+  padding: env(safe-area-inset-top, 16px) 16px env(safe-area-inset-bottom, 16px);
+  pointer-events: auto;
+  overflow-y: auto;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.comic-boom-overlay.dead {
+  background: radial-gradient(circle at center, rgba(239, 68, 68, 0.52) 0%, rgba(20, 5, 30, 0.96) 75%);
+  animation: flashRed 0.4s ease-out;
+}
+.comic-boom-overlay.saved {
+  background: radial-gradient(circle at center, rgba(34, 197, 94, 0.48) 0%, rgba(10, 25, 20, 0.96) 75%);
+  animation: flashGreen 0.4s ease-out;
+}
+
+@keyframes flashRed {
+  0% { background-color: rgba(255, 255, 255, 0.92); }
+  30% { background-color: rgba(255, 60, 0, 0.75); }
+  100% { background-color: transparent; }
+}
+@keyframes flashGreen {
+  0% { background-color: rgba(255, 255, 255, 0.92); }
+  30% { background-color: rgba(34, 197, 94, 0.75); }
+  100% { background-color: transparent; }
+}
+
+/* Screen shake during bomb explosion */
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  10%, 30%, 50%, 70%, 90% { transform: translate(-7px, 4px) rotate(-1.5deg); }
+  20%, 40%, 60%, 80% { transform: translate(7px, -4px) rotate(1.5deg); }
+}
+.game.shake {
+  animation: screenShake 0.7s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Rotating comic sunburst rays */
+.comic-starburst-spin {
+  position: absolute;
+  width: 170vmax;
+  height: 170vmax;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 200, 0, 0.18) 0deg 12deg,
+    transparent 12deg 24deg
+  );
+  animation: starburstSpin 14s linear infinite;
   pointer-events: none;
 }
-.boom span {
-  font-size: 4rem;
+.comic-boom-overlay.saved .comic-starburst-spin {
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(52, 211, 153, 0.2) 0deg 12deg,
+    transparent 12deg 24deg
+  );
+}
+@keyframes starburstSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Shockwave expanding ring */
+.comic-shockwave-ring {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 6px solid #ffcc00;
+  box-shadow: 0 0 35px #ff5500, inset 0 0 30px #ffcc00;
+  animation: shockwaveExpand 1.1s cubic-bezier(0.15, 0.9, 0.25, 1) forwards;
+  pointer-events: none;
+}
+@keyframes shockwaveExpand {
+  0% { transform: scale(0.2); opacity: 1; border-width: 12px; }
+  70% { opacity: 0.85; border-width: 6px; }
+  100% { transform: scale(14); opacity: 0; border-width: 1px; }
+}
+
+/* Comic content container */
+.comic-boom-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  max-width: min(92vw, 420px);
+  width: 100%;
+  margin: auto;
+  animation: comicContentPop 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+@keyframes comicContentPop {
+  0% { transform: scale(0.2) rotate(-8deg); opacity: 0; }
+  70% { transform: scale(1.08) rotate(2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.comic-boom-graphic-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: 40vh;
+}
+.comic-boom-art {
+  width: min(74vw, 290px);
+  max-height: 36vh;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  filter: drop-shadow(0 0 25px rgba(255, 110, 0, 0.85)) drop-shadow(0 12px 28px rgba(0, 0, 0, 0.95));
+  animation: boomPulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes boomPulse {
+  0% { transform: scale(1) rotate(-1.5deg); }
+  100% { transform: scale(1.06) rotate(1.5deg); }
+}
+
+/* Action word badges popping out around BOOM */
+.comic-burst-words {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.comic-word {
+  position: absolute;
+  font-family: inherit;
+  font-weight: 900;
+  font-size: 1.1rem;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 3px solid #111;
+  box-shadow: 4px 4px 0 #111;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  animation: popSpark 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.comic-word.w1 {
+  top: -8px;
+  left: -12px;
+  background: #ffeb3b;
+  color: #111;
+  transform: rotate(-16deg);
+  animation-delay: 0.12s;
+}
+.comic-word.w2 {
+  top: -10px;
+  right: -10px;
+  background: #ff5722;
+  color: #fff;
+  transform: rotate(14deg);
+  animation-delay: 0.18s;
+}
+.comic-word.w3 {
+  bottom: 8px;
+  left: -12px;
+  background: #e91e63;
+  color: #fff;
+  transform: rotate(-10deg);
+  animation-delay: 0.22s;
+}
+.comic-word.w4 {
+  bottom: 6px;
+  right: -10px;
+  background: #00e676;
+  color: #111;
+  transform: rotate(14deg);
+  animation-delay: 0.26s;
+}
+.comic-word.w5 {
+  top: 45%;
+  left: -18px;
+  background: #00e5ff;
+  color: #111;
+  transform: rotate(-8deg);
+  animation-delay: 0.3s;
+}
+@keyframes popSpark {
+  0% { transform: scale(0); opacity: 0; }
+  70% { transform: scale(1.25); opacity: 1; }
+  100% { opacity: 1; }
+}
+
+/* Character & Outcome banner card */
+.comic-boom-banner {
+  --pcolor: #ff3b3b;
+  width: 100%;
+  background: rgba(18, 7, 34, 0.95);
+  border: 3px solid color-mix(in srgb, var(--pcolor) 65%, #fff);
+  box-shadow:
+    0 0 0 2px #110424,
+    0 8px 30px rgba(0, 0, 0, 0.8),
+    0 0 24px color-mix(in srgb, var(--pcolor) 50%, transparent);
+  border-radius: 18px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.comic-boom-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.comic-boom-avatar {
+  width: 56px;
+  height: 56px;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2.5px solid var(--pcolor);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--pcolor) 55%, transparent);
+  flex-shrink: 0;
+}
+.comic-boom-avatar .avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 9px;
+  object-fit: cover;
+}
+.comic-boom-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.comic-boom-pname {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.comic-boom-subtitle {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--pcolor);
+  letter-spacing: 0.04em;
+}
+.comic-banner-badge {
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+}
+.comic-banner-badge.saved-badge {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(16, 185, 129, 0.15));
+  border: 2px solid #22c55e;
+}
+.comic-banner-badge.dead-badge {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.28), rgba(220, 38, 38, 0.15));
+  border: 2px solid #ef4444;
+}
+.badge-title {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+.badge-desc {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.3;
+}
+.comic-boom-action-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+}
+.comic-boom-action-btn {
+  width: 100%;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+}
+.comic-boom-action-btn.btn-primary {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border-color: #4ade80;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.55);
+}
+.comic-boom-tap-hint {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.72);
+  text-align: center;
+  letter-spacing: 0.02em;
 }
 
 @keyframes pulse {
@@ -1217,12 +1637,12 @@ dialog::backdrop {
 
 @keyframes drawFlyFromDeck {
   0% {
-    opacity: 0.2;
-    transform: translate(-55px, -150px) scale(0.28) rotateY(80deg) rotateZ(-10deg);
+    opacity: 0.15;
+    transform: translate(-30vw, -12vh) scale(0.25) rotateY(70deg) rotateZ(-12deg);
   }
-  65% {
+  60% {
     opacity: 1;
-    transform: translate(0, 0) scale(1.04) rotateY(0deg) rotateZ(1deg);
+    transform: translate(0, 0) scale(1.05) rotateY(0deg) rotateZ(1deg);
   }
   100% {
     opacity: 1;
@@ -1235,9 +1655,13 @@ dialog::backdrop {
     opacity: 1;
     transform: translate(0, 0) scale(1) rotateZ(0deg);
   }
+  40% {
+    opacity: 0.9;
+    transform: translate(0, 16vh) scale(0.68) rotateZ(2deg);
+  }
   100% {
-    opacity: 0.15;
-    transform: translate(0, 38dvh) scale(0.3) rotateZ(4deg);
+    opacity: 0;
+    transform: translate(0, 48vh) scale(0.22) rotateZ(4deg);
   }
 }
 
@@ -1354,16 +1778,25 @@ dialog::backdrop {
 }
 
 .my-avatar-ring {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  aspect-ratio: 1 / 1;
+  border-radius: 9px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
   border: 2px solid var(--pcolor);
   background: color-mix(in srgb, var(--pcolor) 20%, #120724);
   box-shadow: 0 0 8px color-mix(in srgb, var(--pcolor) 50%, transparent);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.my-avatar-ring .avatar-img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 7px;
+  object-fit: cover;
 }
 
 .my-card-count {
