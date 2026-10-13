@@ -67,6 +67,7 @@ export function Game({
   future,
   clearFuture,
   boom,
+  onDismissBoom,
   drawnCard,
   onDismissDrawn,
   lastNewCardId,
@@ -77,6 +78,7 @@ export function Game({
   future: CardType[] | null;
   clearFuture: () => void;
   boom: Boom | null;
+  onDismissBoom?: () => void;
   drawnCard?: DrawnCardReveal | null;
   onDismissDrawn?: () => void;
   lastNewCardId?: number | null;
@@ -383,7 +385,7 @@ export function Game({
         </div>
       </Modal>
 
-      {g.phase === 'defuse' && g.defuse?.playerId === me && !boom && <DefuseDialog deckCount={g.deckCount} act={act} />}
+      {g.phase === 'defuse' && g.defuse?.playerId === me && <DefuseDialog deckCount={g.deckCount} act={act} />}
 
       <Modal open={!!future} onClose={clearFuture} title={<span className="modal-title-with-icon"><IconRadar size={20} /> Нюх-Радар: верх колоди</span>}>
         <div className="future">
@@ -446,6 +448,7 @@ export function Game({
           className={`comic-boom-overlay ${boom.saved ? 'saved' : 'dead'}`}
           role="alert"
           aria-live="assertive"
+          onClick={onDismissBoom}
         >
           <div className="comic-starburst-spin" aria-hidden />
           <div className="comic-shockwave-ring" aria-hidden />
@@ -504,6 +507,36 @@ export function Game({
                     </span>
                   </div>
                 )}
+              </div>
+
+              <div className="comic-boom-action-box">
+                {boom.isMe && boom.saved && (
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-big comic-boom-action-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDismissBoom?.();
+                    }}
+                  >
+                    <IconDefuse size={20} /> Сховати Петарду в бак
+                  </button>
+                )}
+                {boom.isMe && !boom.saved && (
+                  <button
+                    type="button"
+                    className="btn btn-ghost comic-boom-action-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDismissBoom?.();
+                    }}
+                  >
+                    Зрозуміло
+                  </button>
+                )}
+                <span className="comic-boom-tap-hint">
+                  {boom.isMe && boom.saved ? 'Торкнися екрана або кнопки, щоб сховати в бак' : 'Торкнися екрана, щоб продовжити'}
+                </span>
               </div>
             </div>
           </div>

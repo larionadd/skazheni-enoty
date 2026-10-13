@@ -117,8 +117,9 @@ export class Room {
     this.touch();
     const err = this.apply(m, a, now);
     if (!err) {
-      if (!m.isBot && a.t === 'draw') {
-        this.pauseBotsUntil = now + 2600;
+      if (!m.isBot) {
+        if (a.t === 'draw') this.pauseBotsUntil = now + 2600;
+        else if (a.t === 'place') this.pauseBotsUntil = 0;
       }
       this.changed();
       this.dispatchEvents();
@@ -219,8 +220,8 @@ export class Room {
       }
       const ready = this.botReadyAt.get(m.id);
       if (ready === undefined) {
-        const quick = !!g.pending;
-        this.botReadyAt.set(m.id, now + (quick ? 1400 + Math.random() * 1000 : 3200 + Math.random() * 1800));
+        const quick = !!g.pending || g.phase === 'defuse';
+        this.botReadyAt.set(m.id, now + (quick ? 1100 + Math.random() * 700 : 3200 + Math.random() * 1800));
         continue;
       }
       if (now < ready) continue;

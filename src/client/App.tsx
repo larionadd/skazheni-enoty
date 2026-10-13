@@ -3,6 +3,7 @@ import { CARD_DEFS, AVATARS, type CardType } from '../shared/cards.ts';
 import type { ClientAction, GameEvent, RoomView } from '../shared/protocol.ts';
 import { CloudTransport } from './cloud.ts';
 import { sfx, isMuted, setMuted } from './fx.ts';
+import { IconOffline, IconVolume } from './icons.tsx';
 import { Game, type Boom, type DrawnCardReveal } from './Game.tsx';
 import { loadSession, OfflineTransport, saveSession, type NetStatus, type Transport } from './net.ts';
 import { Home, Lobby, type Profile } from './Screens.tsx';
@@ -77,6 +78,13 @@ export function App() {
     });
   }, []);
 
+  const boomTimerRef = useRef<number | null>(null);
+  const dismissBoom = useCallback(() => {
+    if (boomTimerRef.current) clearTimeout(boomTimerRef.current);
+    boomTimerRef.current = null;
+    setBoom(null);
+  }, []);
+
   const setProfile = (p: Profile) => {
     setProfileState(p);
     try {
@@ -138,13 +146,13 @@ export function App() {
           case 'exploded': {
             const eKey = Date.now();
             const isMe = e.by === me;
+            if (boomTimerRef.current) clearTimeout(boomTimerRef.current);
             setBoom({ by: e.by, saved: e.saved, key: eKey, isMe });
             if (e.saved) sfx.saved();
             else sfx.boom();
-            if (isMe) {
-              startDrawReveal('petard', undefined, 'НЕБЕЗПЕКА! ПЕТАРДА В БАКУ!');
-            }
-            setTimeout(() => setBoom((curr) => (curr?.key === eKey ? null : curr)), 3400);
+            boomTimerRef.current = window.setTimeout(() => {
+              setBoom((curr) => (curr?.key === eKey ? null : curr));
+            }, 1800);
             break;
           }
           case 'shuffled':
@@ -238,7 +246,11 @@ export function App() {
           {status === 'online' && '● онлайн'}
           {status === 'connecting' && '○ з’єднання…'}
           {status === 'reconnecting' && '◌ перепідключення…'}
-          {status === 'offline-mode' && '📴 офлайн з ботами'}
+          {status === 'offline-mode' && (
+            <span className="net-offline">
+              <IconOffline size={13} /> офлайн з ботами
+            </span>
+          )}
         </span>
         {inRoom && !view.offline && <span className="topcode">Кімната {view.code}</span>}
         <button
@@ -249,7 +261,7 @@ export function App() {
             setMutedState(!muted);
           }}
         >
-          {muted ? '🔇' : '🔊'}
+          <IconVolume on={!muted} size={18} />
         </button>
       </div>
 
@@ -272,6 +284,7 @@ export function App() {
           future={future}
           clearFuture={() => setFuture(null)}
           boom={boom}
+          onDismissBoom={dismissBoom}
           drawnCard={drawnCard}
           onDismissDrawn={dismissDrawRevealEarly}
           lastNewCardId={lastNewCardId}
