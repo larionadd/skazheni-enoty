@@ -163,70 +163,79 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
 }
 
-.combat-versus {
+.combat-versus-banner {
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   max-width: 440px;
 }
 
-.combatant-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.combatant-power {
+.combat-power-pill {
+  flex: 1;
   font-family: var(--font-comic);
-  font-size: 2rem;
-  padding: 4px 14px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
-.player-power {
-  background: #047857;
-  color: #6ee7b7;
-  border: 2px solid #10b981;
+.player-power-pill {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #ecfdf5;
+  border: 2px solid #34d399;
 }
 
-.monster-power {
-  background: #b91c1c;
-  color: #fca5a5;
-  border: 2px solid #ef4444;
+.monster-power-pill {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: #fef2f2;
+  border: 2px solid #f87171;
 }
 
 .vs-badge {
   font-family: var(--font-comic);
-  font-size: 1.6rem;
+  font-size: 1.3rem;
   color: var(--accent-gold);
-  text-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.7);
+  padding: 0 2px;
 }
 
 .combat-actions {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
+  width: 100%;
+  max-width: 440px;
   justify-content: center;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .btn-action {
+  flex: 1;
   font-family: var(--font-comic);
-  font-size: 1rem;
+  font-size: 0.92rem;
   letter-spacing: 0.5px;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
+  padding: 10px 8px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
   cursor: pointer;
   font-weight: bold;
   color: white;
-  transition: transform 0.1s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  transition: transform 0.1s ease, filter 0.15s ease;
 }
 
 .btn-action:active {
@@ -234,98 +243,70 @@ body {
 }
 
 .btn-fight {
-  background: #10b981;
-  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.4);
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  border-color: #facc15;
 }
 
 .btn-help {
-  background: #f59e0b;
-  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);
+  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+  border-color: #fde047;
 }
 
 .btn-run {
-  background: #ef4444;
-  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
+  background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+  border-color: #fca5a5;
 }
 
 .btn-loot {
-  background: #8b5cf6;
-  box-shadow: 0 4px 10px rgba(139, 92, 246, 0.4);
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  border-color: #c4b5fd;
 }
 
 .btn-end {
-  background: #6b7280;
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
 }
 
-/* Combat Log Box */
-.combat-log {
-  max-height: 58px;
-  overflow-y: auto;
-  font-size: 0.72rem;
-  color: #cbd5e1;
-  background: #191524;
-  padding: 4px 8px;
-  border-radius: 6px;
-  border: 1px solid #372f4e;
-  width: 90%;
-  text-align: left;
-}
-
-/* Player Gear bar */
-.player-dashboard {
-  background: #181424;
-  border: 1px solid #372e4e;
-  border-radius: 12px;
-  padding: 8px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.player-stats-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.level-badge {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: #000;
-  font-family: var(--font-comic);
-  font-size: 1.1rem;
-  padding: 2px 10px;
-  border-radius: 999px;
-  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.5);
-}
-
-.power-badge {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #34d399;
-}
-
+/* Inventory Gear Grid */
 .gear-slots-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 2px;
+  width: 100%;
 }
 
 .gear-slot {
   background: #231c33;
   border: 1px solid #433761;
   border-radius: 8px;
-  padding: 3px 6px;
+  padding: 6px 4px;
   font-size: 0.68rem;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
+  text-align: center;
+  gap: 2px;
+}
+
+.gear-slot-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.gear-slot-item {
+  color: #f3f4f6;
+  font-weight: 600;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .gear-slot.filled {
   border-color: #facc15;
-  background: #2b2144;
+  background: linear-gradient(180deg, #32254e 0%, #201735 100%);
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.2);
 }
 
 /* Cards Hand */

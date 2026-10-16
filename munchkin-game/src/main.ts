@@ -82,28 +82,39 @@ function renderUI() {
     arenaContent = `
       <div class="combat-view">
         ${monsterArtHTML}
-        <div class="combat-versus">
-          <div class="combatant-box">
-            <span style="font-size: 0.8rem; font-weight: bold;">ТВОЯ СТОРОНА</span>
-            <div class="combatant-power player-power">${playerSidePower}</div>
+        <div class="combat-versus-banner">
+          <div class="combat-power-pill player-power-pill">
+            <span>ТВОЯ СИЛА:</span>
+            <span style="font-size: 1.35rem; font-weight: bold;">${playerSidePower}</span>
           </div>
           <div class="vs-badge">VS</div>
-          <div class="combatant-box">
-            <span style="font-size: 0.8rem; font-weight: bold;">МОНСТР</span>
-            <div class="combatant-power monster-power">${monsterPower}</div>
+          <div class="combat-power-pill monster-power-pill">
+            <span>МОНСТР:</span>
+            <span style="font-size: 1.35rem; font-weight: bold;">${monsterPower}</span>
           </div>
         </div>
 
-        <div style="font-weight: bold; color: ${canWin ? '#34d399' : '#f87171'}; font-size: 0.9rem;">
+        <div style="font-weight: bold; color: ${canWin ? '#34d399' : '#f87171'}; font-size: 0.85rem; margin-top: 2px;">
           ${canWin ? '💪 Твоя сила більша! Ти перемагаєш!' : '⚠️ Монстр сильніший! Клич кума або змивайся!'}
         </div>
 
         <div class="combat-actions">
           ${isHumanTurn ? `
-            <button id="btn-fight" class="btn-action btn-fight" ${!canWin ? 'style="opacity: 0.7;"' : ''}>⚔️ Вбити Монстра!</button>
-            ${!s.combat.helperId ? '<button id="btn-help" class="btn-action btn-help">🤝 Покликати Кума</button>' : ''}
-            <button id="btn-run" class="btn-action btn-run">🏃💨 Змиватися (Кубик d6)</button>
-          ` : '<span style="color: #94a3b8;">Триває бій бота...</span>'}
+            <button id="btn-fight" class="btn-action btn-fight" ${!canWin ? 'style="opacity: 0.65;"' : ''}>
+              <span style="font-size: 1.15rem;">⚔️</span>
+              <span>ВБИТИ!</span>
+            </button>
+            ${!s.combat.helperId ? `
+              <button id="btn-help" class="btn-action btn-help">
+                <span style="font-size: 1.15rem;">📱</span>
+                <span>КЛИКАТИ КУМА</span>
+              </button>
+            ` : ''}
+            <button id="btn-run" class="btn-action btn-run">
+              <span style="font-size: 1.15rem;">🎲</span>
+              <span>ВТЕКТИ (d6)</span>
+            </button>
+          ` : '<span style="color: #94a3b8; font-size: 0.85rem;">Триває бій бота...</span>'}
         </div>
 
         <div class="combat-log">
@@ -115,7 +126,7 @@ function renderUI() {
     arenaContent = `
       <div class="status-banner">У кабінеті чисто або монстр подоланий!</div>
       ${isHumanTurn ? `
-        <button id="btn-loot-room" class="btn-action btn-loot" style="font-size: 1.2rem; padding: 14px 20px;">
+        <button id="btn-loot-room" class="btn-action btn-loot" style="font-size: 1.1rem; padding: 14px 20px; max-width: 320px;">
           📦 Понишпорити в кабінеті (Взяти карту)
         </button>
       ` : '<div>Бот нишпорить по шухлядах...</div>'}
@@ -124,7 +135,7 @@ function renderUI() {
     arenaContent = `
       <div class="status-banner">Фаза завершення ходу! Перевір свої карти та передай чергу.</div>
       ${isHumanTurn ? `
-        <button id="btn-end-turn" class="btn-action btn-end" style="font-size: 1.2rem; padding: 12px 24px;">
+        <button id="btn-end-turn" class="btn-action btn-end" style="font-size: 1.1rem; padding: 12px 24px; max-width: 280px;">
           ⏭️ Завершити Хід
         </button>
       ` : ''}
@@ -132,13 +143,13 @@ function renderUI() {
   } else if (s.phase === 'GAME_OVER' && s.winner) {
     arenaContent = `
       <div style="font-size: 3rem;">👑</div>
-      <div style="font-family: var(--font-comic); font-size: 2rem; color: #facc15;">
+      <div style="font-family: var(--font-comic); font-size: 1.8rem; color: #facc15;">
         ${s.winner.name} ПЕРЕМІГ!
       </div>
-      <div style="font-size: 0.9rem; color: #cbd5e1; margin-top: 6px;">
+      <div style="font-size: 0.85rem; color: #cbd5e1; margin-top: 4px;">
         10-й Рівень здобуто! Ласкаво просимо в крісло Головного Начальника!
       </div>
-      <button onclick="location.reload()" class="btn-action btn-fight" style="margin-top: 14px;">
+      <button onclick="location.reload()" class="btn-action btn-fight" style="margin-top: 12px; max-width: 220px;">
         🔄 Грати Знову
       </button>
     `;
@@ -166,16 +177,20 @@ function renderUI() {
   const gear = human.gear;
   const gearHTML = `
     <div class="gear-slot ${gear.headgear ? 'filled' : ''}">
-      🎩 ${gear.headgear ? `${gear.headgear.name} (+${gear.headgear.bonus})` : 'Шолом: порожньо'}
+      <span class="gear-slot-label">🎩 Шолом</span>
+      <span class="gear-slot-item">${gear.headgear ? `${gear.headgear.name} (+${gear.headgear.bonus})` : 'Порожньо'}</span>
     </div>
     <div class="gear-slot ${gear.armor ? 'filled' : ''}">
-      🥋 ${gear.armor ? `${gear.armor.name} (+${gear.armor.bonus})` : 'Броня: порожньо'}
+      <span class="gear-slot-label">🥋 Броня</span>
+      <span class="gear-slot-item">${gear.armor ? `${gear.armor.name} (+${gear.armor.bonus})` : 'Порожньо'}</span>
     </div>
     <div class="gear-slot ${gear.footwear ? 'filled' : ''}">
-      👟 ${gear.footwear ? `${gear.footwear.name} (+${gear.footwear.bonus})` : 'Взуття: порожньо'}
+      <span class="gear-slot-label">👟 Взуття</span>
+      <span class="gear-slot-item">${gear.footwear ? `${gear.footwear.name} (+${gear.footwear.bonus})` : 'Порожньо'}</span>
     </div>
     <div class="gear-slot ${gear.hands.length > 0 ? 'filled' : ''}">
-      ⚔️ ${gear.hands.length > 0 ? gear.hands.map((h) => `${h.name} (+${h.bonus})`).join(', ') : 'Руки: порожньо'}
+      <span class="gear-slot-label">⚔️ Зброя</span>
+      <span class="gear-slot-item">${gear.hands.length > 0 ? gear.hands.map((h) => `${h.name} (+${h.bonus})`).join(', ') : 'Порожньо'}</span>
     </div>
   `;
 
