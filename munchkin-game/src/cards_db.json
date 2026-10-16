@@ -1,0 +1,155 @@
+{
+  "gameTitle": "ХАПУГИ: Підземелля Бюрократії",
+  "version": "0.1.0-concept",
+  "doorsDeck": [
+    {
+      "id": "door_monster_sysadmin",
+      "type": "monster",
+      "name": "Сисадмін на Обіді",
+      "level": 2,
+      "treasures": 1,
+      "levelsAwarded": 1,
+      "badStuff": "Вимикає роутер — скинь 1 найсильнішу шмотку з руки.",
+      "flavor": "Не чіпайте його, він грає в Танки з 2011 року."
+    },
+    {
+      "id": "door_monster_vakhterka",
+      "type": "monster",
+      "name": "Зла Вахтерка Гуртожитку",
+      "level": 6,
+      "treasures": 2,
+      "levelsAwarded": 1,
+      "modifier": { "targetClass": "student", "bonus": 3 },
+      "badStuff": "Не пускає додому після 23:00 — пропускаєш наступний хід.",
+      "flavor": "Знає кожного в обличчя і чує шурхіт пакета за 3 поверхи."
+    },
+    {
+      "id": "door_monster_pigeon",
+      "type": "monster",
+      "name": "Голуб-Рекітир",
+      "level": 1,
+      "treasures": 1,
+      "levelsAwarded": 1,
+      "badStuff": "Забирає всі твої крихти хліба та дрібні гроші.",
+      "flavor": "Курлик, шановний, є 2 гривні на проїзд?"
+    },
+    {
+      "id": "door_monster_borshch",
+      "type": "monster",
+      "name": "Пліснявий Борщ у Холодильнику",
+      "level": 8,
+      "treasures": 2,
+      "levelsAwarded": 1,
+      "badStuff": "Токсичний викид: спалює твою натільну броню.",
+      "flavor": "Стоїть на полиці з весни минулого року і вже вимагає паспорт."
+    },
+    {
+      "id": "door_monster_bureaucrat_dragon",
+      "type": "monster",
+      "name": "Дракон-Бюрократ",
+      "level": 16,
+      "treasures": 4,
+      "levelsAwarded": 2,
+      "badStuff": "Ставить печатку «ВІДМОВЛЕНО»: втрата 2 рівнів та всіх довідок.",
+      "flavor": "Його вогонь складається з палених дедлайнів та гарячих печаток."
+    },
+    {
+      "id": "door_curse_lunch_break",
+      "type": "curse",
+      "name": "Обідня Перерва з 13:00 до 15:00",
+      "effect": "Всі кабінети зачинені. Гравець не може грати карти допомоги в цьому раунді.",
+      "flavor": "Табличка на дверях з'явилася рівно перед твоїм носом."
+    },
+    {
+      "id": "door_curse_lost_record",
+      "type": "curse",
+      "name": "Загублена Трудова Книжка",
+      "effect": "Втрать 1 рівень негайно.",
+      "flavor": "А ми вам нічого не оформлювали!"
+    },
+    {
+      "id": "door_class_student",
+      "type": "class",
+      "name": "Студент-Бюджетник",
+      "bonuses": [
+        "Змивання: +1 на кубику при втечі від будь-якого монстра.",
+        "Халява: Якщо в тебе 0 шмоток, тягнеш +1 скарб у фазі благодійності."
+      ]
+    },
+    {
+      "id": "door_class_bazaar_merchant",
+      "type": "class",
+      "name": "Базарний Торгаш",
+      "bonuses": [
+        "Комерсант: Може нести дві Великі Шмотки одночасно.",
+        "Торг: Раз на хід може обміняти 1 скарб на +3 сили в бою."
+      ]
+    }
+  ],
+  "treasuresDeck": [
+    {
+      "id": "loot_kravchuchka",
+      "type": "equipment",
+      "slot": "two_hands",
+      "name": "Дворучна Кравчучка Жадібності",
+      "bonus": 4,
+      "isBig": true,
+      "valueGold": 800,
+      "flavor": "Вміщує мішок картоплі, три артефакти і гідність."
+    },
+    {
+      "id": "loot_boiler_scepter",
+      "type": "equipment",
+      "slot": "one_hand",
+      "name": "Кип'ятильник Люті",
+      "bonus": 3,
+      "valueGold": 400,
+      "flavor": "Гріє воду за 40 секунд, плавить проводку за 20."
+    },
+    {
+      "id": "loot_foil_hat",
+      "type": "equipment",
+      "slot": "headgear",
+      "name": "Шапка з Фольги від 5G",
+      "bonus": 2,
+      "valueGold": 300,
+      "flavor": "Захищає від прокльонів та випромінювання сусідського Wi-Fi."
+    },
+    {
+      "id": "loot_bunny_slippers",
+      "type": "equipment",
+      "slot": "footwear",
+      "name": "Шльопанці-Зайчики Швидкості",
+      "bonus": 1,
+      "runBonus": 2,
+      "valueGold": 250,
+      "flavor": "М'які, безшумні, допомагають втікати від коменди."
+    },
+    {
+      "id": "loot_abibas_tracksuit",
+      "type": "equipment",
+      "slot": "armor",
+      "name": "Спортивка «Abibas» з трьома смугами",
+      "bonus": 2,
+      "valueGold": 500,
+      "flavor": "+100 до переконливості в темному коридорі."
+    },
+    {
+      "id": "loot_cucumber_jar",
+      "type": "consumable",
+      "name": "Банка Бабусиних Огірків",
+      "bonus": 5,
+      "valueGold": 300,
+      "usableInAnyCombat": true,
+      "flavor": "Одноразовий підгон сили. Розсіл зцілює душу."
+    },
+    {
+      "id": "loot_candy_box",
+      "type": "consumable",
+      "name": "Коробочка «Вечірній Київ»",
+      "effect": "Підкуп монстра до 5-го рівня: забираєш його скарби без бою.",
+      "valueGold": 450,
+      "flavor": "Універсальний ключ від будь-якого кабінету."
+    }
+  ]
+}
