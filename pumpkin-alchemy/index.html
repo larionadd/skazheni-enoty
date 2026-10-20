@@ -15,6 +15,42 @@
   </div>
 
   <main class="game-shell" id="gameShell">
+    <!-- Main Menu Screen (Title Screen) -->
+    <section class="main-menu-screen" id="mainMenuScreen" aria-label="Головне Меню">
+      <div class="main-menu-bg" aria-hidden="true"></div>
+      <div class="main-menu-content">
+        <div class="main-menu-header">
+          <div class="main-menu-logo-wrap">
+            <img class="main-menu-logo" src="assets/sprites/game_logo.webp" alt="Pumpkin Alchemy" width="200" height="200" />
+          </div>
+          <h1 class="main-menu-title" id="mmTitle">PUMPKIN ALCHEMY</h1>
+          <p class="main-menu-subtitle" id="mmSubtitle">Затишна Геловінська Алхімія</p>
+          <div class="main-menu-saved-badge" id="mmSavedBadge">🌙 Ніч 1</div>
+        </div>
+
+        <div class="main-menu-actions">
+          <button type="button" class="primary-btn mm-btn-play" id="btnPlayMain">
+            <span id="lblPlayMain">🌙 Почати Ніч 1</span>
+          </button>
+          <button type="button" class="secondary-btn mm-btn-restart" id="btnPlayNewGame" style="display: none;">
+            <span id="lblPlayNewGame">🔄 Почати спочатку (з 1-ї ночі)</span>
+          </button>
+          <button type="button" class="secondary-btn mm-btn-settings" id="btnOpenSettings">
+            <span id="lblOpenSettings">⚙️ Налаштування</span>
+          </button>
+          <button type="button" class="secondary-btn mm-btn-grimoire" id="btnOpenGrimoireMenu">
+            <span id="lblOpenGrimoire">📖 Гримуар</span>
+          </button>
+        </div>
+
+        <div class="main-menu-footer">
+          <button type="button" class="mm-lang-pill" id="btnQuickLangToggle" aria-label="Змінити мову / Switch language">
+            <span id="lblQuickLang">🇺🇦 УКР</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
     <!-- Top Wooden Signboard + Fixed-Height Story Guest Order Card -->
     <header class="wood-header">
       <div class="rope rope--left" aria-hidden="true"></div>
@@ -27,16 +63,22 @@
             <span class="level-badge" id="levelBadge">🌙 НІЧ 1</span>
           </div>
           <div class="progress-pills">
-            <span class="prog-pill" id="guestProgressPill" title="Виконано замовлень цієї ночі">📜 Ціль: 0/2</span>
-            <span class="prog-pill prog-pill--coins" id="coinsPill" title="Відьомські монети (Денна Крамниця відкривається з настанням дня)">🪙 <strong id="coinsValue">10</strong></span>
+            <span class="prog-pill" id="guestProgressPill">📜 Ціль: 0/2</span>
+            <span class="prog-pill prog-pill--coins" id="coinsPill">🪙 <strong id="coinsValue">10</strong></span>
           </div>
         </div>
 
         <div class="header-actions">
-          <button type="button" class="icon-btn" id="btnSound" aria-label="Увімкнути або вимкнути звук" title="Звук та геловінська музика">
+          <button type="button" class="icon-btn" id="btnHome" aria-label="Головне меню" title="Головне меню">
+            🏠
+          </button>
+          <button type="button" class="icon-btn" id="btnSettingsHeader" aria-label="Налаштування" title="Налаштування">
+            ⚙️
+          </button>
+          <button type="button" class="icon-btn" id="btnSound" aria-label="Увімкнути або вимкнути звук">
             🔊
           </button>
-          <button type="button" class="icon-btn" id="btnRestart" aria-label="Почати спочатку" title="Нова гра">
+          <button type="button" class="icon-btn" id="btnRestart" aria-label="Почати спочатку">
             🔄
           </button>
         </div>
@@ -271,6 +313,89 @@
     </div>
   </dialog>
 
+  <!-- First-Launch Language Selection Modal -->
+  <dialog id="firstLangDialog" class="cozy-dialog lang-dialog" aria-labelledby="firstLangTitle">
+    <div class="dialog-card lang-card">
+      <header class="dialog-header">
+        <h2 id="firstLangTitle">✨ Оберіть Мову / Select Language</h2>
+      </header>
+      <div class="dialog-body lang-dialog-body">
+        <p class="lang-dialog-desc" id="firstLangDesc">
+          Оберіть мову для чарівного казана:<br>
+          <span style="opacity: 0.85;">Choose your preferred language:</span>
+        </p>
+        <div class="lang-options">
+          <button type="button" class="lang-select-btn" data-lang="uk" id="btnPickLangUk">
+            <span class="lang-flag">🇺🇦</span>
+            <div class="lang-btn-text">
+              <strong class="lang-name">Українська</strong>
+              <span class="lang-sub">Грати українською мовою</span>
+            </div>
+          </button>
+          <button type="button" class="lang-select-btn" data-lang="en" id="btnPickLangEn">
+            <span class="lang-flag">🇬🇧</span>
+            <div class="lang-btn-text">
+              <strong class="lang-name">English</strong>
+              <span class="lang-sub">Play game in English</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Settings Dialog (Language, Audio, Progress Resume & Reset) -->
+  <dialog id="settingsDialog" class="cozy-dialog" closedby="any" aria-labelledby="settingsTitle">
+    <div class="dialog-card settings-card">
+      <header class="dialog-header">
+        <h2 id="settingsTitle">⚙️ Налаштування</h2>
+        <form method="dialog">
+          <button type="submit" class="dialog-close" aria-label="Закрити">✕</button>
+        </form>
+      </header>
+
+      <div class="dialog-body settings-body">
+        <section class="settings-group">
+          <h3 class="settings-group-title" id="lblSettingLang">🌐 Мова гри / Language</h3>
+          <div class="settings-lang-switch">
+            <button type="button" class="settings-lang-btn" id="btnSettingLangUk" data-lang="uk">
+              🇺🇦 Українська
+            </button>
+            <button type="button" class="settings-lang-btn" id="btnSettingLangEn" data-lang="en">
+              🇬🇧 English
+            </button>
+          </div>
+        </section>
+
+        <section class="settings-group">
+          <h3 class="settings-group-title" id="lblSettingAudio">🔊 Звук та Атмосфера</h3>
+          <div class="settings-row">
+            <span id="lblSettingSoundEffects">Ефекти та Музика</span>
+            <button type="button" class="toggle-btn" id="btnSettingSoundToggle">🔊 Увімкнено</button>
+          </div>
+        </section>
+
+        <section class="settings-group">
+          <h3 class="settings-group-title" id="lblSettingProgress">💾 Збереження та Прогрес</h3>
+          <div class="settings-progress-card">
+            <span id="settingsCurrentNightInfo">Поточний прогрес: Ніч 1</span>
+            <span id="settingsCurrentCoinsInfo">🪙 10 монет | Рекорд: 0</span>
+          </div>
+          <button type="button" class="danger-btn" id="btnResetProgress">
+            <span id="lblResetProgress">⚠️ Скинути збереження (з 1-ї ночі)</span>
+          </button>
+        </section>
+      </div>
+
+      <footer class="dialog-footer">
+        <form method="dialog">
+          <button type="submit" class="primary-btn" id="lblCloseSettings">Готово ✨</button>
+        </form>
+      </footer>
+    </div>
+  </dialog>
+
+  <script src="i18n.js"></script>
   <script src="sprites-data.js"></script>
   <script src="audio.js"></script>
   <script src="renderer.js"></script>

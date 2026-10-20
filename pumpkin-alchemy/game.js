@@ -2,6 +2,11 @@
 
 (() => {
   const STORAGE_KEY_HISCORE = "pumpkin_alchemy_hiscore_v3";
+  const STORAGE_KEY_SAVED_LEVEL = "pumpkin_alchemy_saved_level_v1";
+  const STORAGE_KEY_SAVED_COINS = "pumpkin_alchemy_saved_coins_v1";
+  const STORAGE_KEY_SAVED_POTIONS = "pumpkin_alchemy_saved_potions_v1";
+  const STORAGE_KEY_SAVED_GREED = "pumpkin_alchemy_saved_greed_v1";
+  const STORAGE_KEY_DISCOVERED_TIER = "pumpkin_alchemy_discovered_tier_v2";
   const LEVEL_DURATION_SECONDS = 120; // 2 minutes per level
   const MAX_COINS_PER_ORDER = 15; // Strict cap: max 15 coins per completed order
 
@@ -145,6 +150,42 @@
 
   const btnNextOrRetry = document.getElementById("btnNextOrRetry");
 
+  // Main Menu Elements
+  const mainMenuScreen = document.getElementById("mainMenuScreen");
+  const mmTitle = document.getElementById("mmTitle");
+  const mmSubtitle = document.getElementById("mmSubtitle");
+  const mmSavedBadge = document.getElementById("mmSavedBadge");
+  const btnPlayMain = document.getElementById("btnPlayMain");
+  const lblPlayMain = document.getElementById("lblPlayMain");
+  const btnPlayNewGame = document.getElementById("btnPlayNewGame");
+  const lblPlayNewGame = document.getElementById("lblPlayNewGame");
+  const btnOpenSettings = document.getElementById("btnOpenSettings");
+  const lblOpenSettings = document.getElementById("lblOpenSettings");
+  const btnOpenGrimoireMenu = document.getElementById("btnOpenGrimoireMenu");
+  const lblOpenGrimoire = document.getElementById("lblOpenGrimoire");
+  const btnQuickLangToggle = document.getElementById("btnQuickLangToggle");
+  const lblQuickLang = document.getElementById("lblQuickLang");
+
+  // In-Game Top Actions
+  const btnHome = document.getElementById("btnHome");
+  const btnSettingsHeader = document.getElementById("btnSettingsHeader");
+
+  // First-Launch Language Dialog
+  const firstLangDialog = document.getElementById("firstLangDialog");
+  const btnPickLangUk = document.getElementById("btnPickLangUk");
+  const btnPickLangEn = document.getElementById("btnPickLangEn");
+
+  // Settings Dialog Elements
+  const settingsDialog = document.getElementById("settingsDialog");
+  const btnSettingLangUk = document.getElementById("btnSettingLangUk");
+  const btnSettingLangEn = document.getElementById("btnSettingLangEn");
+  const btnSettingSoundToggle = document.getElementById("btnSettingSoundToggle");
+  const settingsCurrentNightInfo = document.getElementById("settingsCurrentNightInfo");
+  const settingsCurrentCoinsInfo = document.getElementById("settingsCurrentCoinsInfo");
+  const btnResetProgress = document.getElementById("btnResetProgress");
+  const lblResetProgress = document.getElementById("lblResetProgress");
+  const lblCloseSettings = document.getElementById("lblCloseSettings");
+
   // Discrete display transition probe & helpers per modern-web-guidance (animate-element-entry-exit)
   let supportsDisplayTransition;
   function canTransitionDisplay() {
@@ -205,7 +246,7 @@
   }
 
   // Fallback for <dialog closedby="any"> per modern-web-guidance (light-dismiss-a-dialog)
-  [grimoireDialog, gameOverDialog].forEach((dialog) => {
+  [grimoireDialog, gameOverDialog, settingsDialog].forEach((dialog) => {
     if (dialog && !("closedBy" in HTMLDialogElement.prototype)) {
       dialog.addEventListener("click", (event) => {
         if (event.target !== dialog) return;
@@ -238,6 +279,7 @@
   };
 
   // Game State
+  let isMenuOpen = true;
   let items = [];
   let particles = [];
   let floatingTexts = [];
@@ -283,7 +325,6 @@
   let levelOrdersCompleted = 0;
   let levelOrdersTarget = 2;
 
-  const STORAGE_KEY_DISCOVERED_TIER = "pumpkin_alchemy_discovered_tier_v1";
   let highestTierReached = Math.max(
     Number(localStorage.getItem(STORAGE_KEY_DISCOVERED_TIER) || 0),
     0
@@ -410,24 +451,27 @@
   // Populate Grimoire: Spirit Evolution Box + Discovered Weighted Ingredients
   function buildGrimoireCards() {
     const spriteUrls = window.SPRITE_DATA_URLS || {};
+    const t = window.PumpkinI18N ? window.PumpkinI18N.t : ((k) => k);
 
     if (spiritEvoBoxEl) {
       const s1 = window.SPIRIT_TIERS[1];
       const s2 = window.SPIRIT_TIERS[2];
+      const s1Name = window.PumpkinI18N ? window.PumpkinI18N.getSpiritName(1) : s1.name;
+      const s2Name = window.PumpkinI18N ? window.PumpkinI18N.getSpiritName(2) : s2.name;
       spiritEvoBoxEl.innerHTML = `
         <div class="spirit-evo-step">
-          <img src="${spriteUrls[s1.spriteKey] || ""}" alt="${s1.name}" />
-          <span>${s1.name}</span>
+          <img src="${spriteUrls[s1.spriteKey] || ""}" alt="${s1Name}" />
+          <span>${s1Name}</span>
         </div>
         <span class="spirit-evo-plus">+</span>
         <div class="spirit-evo-step">
-          <img src="${spriteUrls[s1.spriteKey] || ""}" alt="${s1.name}" />
-          <span>${s1.name}</span>
+          <img src="${spriteUrls[s1.spriteKey] || ""}" alt="${s1Name}" />
+          <span>${s1Name}</span>
         </div>
         <span class="spirit-evo-plus">=</span>
         <div class="spirit-evo-step">
-          <img src="${spriteUrls[s2.spriteKey] || ""}" alt="${s2.name}" />
-          <span style="color:#ffe47a">${s2.name} 👑</span>
+          <img src="${spriteUrls[s2.spriteKey] || ""}" alt="${s2Name}" />
+          <span style="color:#ffe47a">${s2Name} 👑</span>
         </div>
       `;
     }
@@ -436,35 +480,37 @@
     const totalIngredients = window.INGREDIENT_TIERS.length;
     const unlockedCount = Math.min(highestTierReached + 1, totalIngredients);
     if (headingEl) {
-      headingEl.textContent = `🎃 Відкриті Інгредієнти (${unlockedCount} з ${totalIngredients})`;
+      headingEl.textContent = window.PumpkinI18N ? window.PumpkinI18N.t("discoveredHeading", unlockedCount, totalIngredients) : `🎃 Відкриті Інгредієнти (${unlockedCount} з ${totalIngredients})`;
     }
 
     evolutionGridEl.innerHTML = "";
-    window.INGREDIENT_TIERS.forEach((t, idx) => {
+    window.INGREDIENT_TIERS.forEach((tObj, idx) => {
       // Hide all locked ingredients — player only sees already discovered ones!
       if (idx > highestTierReached) return;
 
-      const wProfile = window.WEIGHT_PROFILES[t.weightClass] || window.WEIGHT_PROFILES.medium;
+      const ingName = window.PumpkinI18N ? window.PumpkinI18N.getIngredientName(idx) : tObj.name;
+      const weightText = window.PumpkinI18N ? window.PumpkinI18N.getWeightLabel(tObj.weightClass) : (window.WEIGHT_PROFILES[tObj.weightClass] || window.WEIGHT_PROFILES.medium).label;
+      const wProfile = window.WEIGHT_PROFILES[tObj.weightClass] || window.WEIGHT_PROFILES.medium;
       const card = document.createElement("div");
       card.className = "evo-item";
 
       const img = document.createElement("img");
       img.className = "evo-sprite";
-      img.src = spriteUrls[t.spriteKey] || `assets/sprites/${t.spriteKey}.webp`;
-      img.alt = t.name;
+      img.src = spriteUrls[tObj.spriteKey] || `assets/sprites/${tObj.spriteKey}.webp`;
+      img.alt = ingName;
 
       const tierLbl = document.createElement("span");
       tierLbl.className = "evo-tier";
-      tierLbl.textContent = `#${idx + 1} (+${t.score})`;
+      tierLbl.textContent = `#${idx + 1} (+${tObj.score})`;
 
       const nameLbl = document.createElement("span");
       nameLbl.className = "evo-name";
-      nameLbl.textContent = t.name;
+      nameLbl.textContent = ingName;
 
       const weightLbl = document.createElement("span");
       weightLbl.className = "evo-weight";
       weightLbl.style.color = wProfile.badgeColor;
-      weightLbl.textContent = wProfile.label;
+      weightLbl.textContent = weightText;
 
       card.append(img, tierLbl, nameLbl, weightLbl);
       evolutionGridEl.appendChild(card);
@@ -509,6 +555,7 @@
   function loadGuest(index) {
     const template = STORY_GUEST_ARCHETYPES[index % STORY_GUEST_ARCHETYPES.length];
     const generated = generateOrderForLevel(currentLevel, levelOrdersCompleted);
+    const guestInfo = window.PumpkinI18N ? window.PumpkinI18N.getGuestInfo(template.id) : template;
 
     activeGuestOrder = {
       template,
@@ -525,9 +572,9 @@
 
     renderer.drawGuestAvatar(guestAvatarCtx, template.id);
     guestStepBadgeEl.textContent = `${Math.min(levelOrdersCompleted + 1, levelOrdersTarget)}/${levelOrdersTarget}`;
-    guestNameEl.textContent = template.name;
+    guestNameEl.textContent = guestInfo.name;
     guestRewardTagEl.textContent = `+${generated.coinReward} 🪙`;
-    guestDialogueEl.textContent = template.dialogue;
+    guestDialogueEl.textContent = guestInfo.dialogue;
 
     updateTopPills();
     syncGuestOrderState();
@@ -541,8 +588,9 @@
   }
 
   function updateTopPills() {
+    const t = window.PumpkinI18N ? window.PumpkinI18N.t : ((k) => k);
     const isDay = cyclePhase === "dawn_transition" || cyclePhase === "day_shop";
-    levelBadgeEl.textContent = isDay ? `☀️ ДЕНЬ ${currentLevel}` : `🌙 НІЧ ${currentLevel}`;
+    levelBadgeEl.textContent = isDay ? `${t("dayPrefix")} ${currentLevel}` : `${t("nightPrefix")} ${currentLevel}`;
     levelBadgeEl.classList.toggle("is-day", isDay);
     timerValueEl.textContent = formatTimeMMSS(levelTimeRemaining);
 
@@ -562,10 +610,11 @@
       timerPillEl.classList.remove("is-low-time", "is-critical-time");
     }
 
-    guestProgressPillEl.textContent = `📜 Ціль: ${levelOrdersCompleted}/${levelOrdersTarget}`;
-    coinsValueEl.textContent = coins.toLocaleString("uk-UA");
+    guestProgressPillEl.textContent = `${t("goalPrefix")} ${levelOrdersCompleted}/${levelOrdersTarget}`;
+    const localeStr = window.PumpkinI18N && window.PumpkinI18N.getLang() === "en" ? "en-US" : "uk-UA";
+    coinsValueEl.textContent = coins.toLocaleString(localeStr);
     if (shopCoinsValueEl) {
-      shopCoinsValueEl.textContent = `🪙 ${coins.toLocaleString("uk-UA")}`;
+      shopCoinsValueEl.textContent = `🪙 ${coins.toLocaleString(localeStr)}`;
     }
     updateToolAndShopButtons();
   }
@@ -841,19 +890,23 @@
     guestTransitionLock = true;
 
     const tpl = activeGuestOrder.template;
+    const guestInfo = window.PumpkinI18N ? window.PumpkinI18N.getGuestInfo(tpl.id) : tpl;
     const rewardCoins = Math.min(MAX_COINS_PER_ORDER, activeGuestOrder.coinReward);
     const bonusPts = activeGuestOrder.bonusScore;
 
     levelOrdersCompleted++;
 
-    guestDialogueEl.textContent = tpl.thankYou;
+    guestDialogueEl.textContent = guestInfo.thankYou;
     guestCardEl.classList.add("guest-celebrate");
     window.cozyAudio.playQuestComplete();
     window.cozyAudio.playCoin();
 
-    addScore(bonusPts, geom.cx, geom.neckTopY - 22, `🎉 ЗАМОВЛЕННЯ +${bonusPts}`);
-    addCoins(rewardCoins, geom.cx, geom.neckTopY + 4, `🪙 +${rewardCoins} МОНЕТ!`);
+    const orderSuccessText = window.PumpkinI18N && window.PumpkinI18N.getLang() === "en" ? `🎉 ORDER +${bonusPts}` : `🎉 ЗАМОВЛЕННЯ +${bonusPts}`;
+    const coinSuccessText = window.PumpkinI18N && window.PumpkinI18N.getLang() === "en" ? `🪙 +${rewardCoins} COINS!` : `🪙 +${rewardCoins} МОНЕТ!`;
+    addScore(bonusPts, geom.cx, geom.neckTopY - 22, orderSuccessText);
+    addCoins(rewardCoins, geom.cx, geom.neckTopY + 4, coinSuccessText);
     spawnSparkles(geom.cx, geom.neckTopY, "#ffd54f", 26);
+    saveCurrentProgress();
     updateTopPills();
 
     setTimeout(() => {
@@ -920,7 +973,8 @@
 
     if (nextWeightBadgeEl) {
       const wProfile = getWeightProfileFor(nextTier, nextSpiritTier);
-      nextWeightBadgeEl.textContent = wProfile.label;
+      const wClass = nextSpiritTier > 0 ? "light" : ((window.INGREDIENT_TIERS[nextTier] && window.INGREDIENT_TIERS[nextTier].weightClass) || "medium");
+      nextWeightBadgeEl.textContent = window.PumpkinI18N ? window.PumpkinI18N.getWeightLabel(wClass) : wProfile.label;
       nextWeightBadgeEl.style.color = wProfile.badgeColor;
     }
   }
@@ -1078,7 +1132,8 @@
 
   function showComboToast(combo) {
     if (combo < 2) return;
-    comboToastEl.textContent = `КОМБО ×${combo}! ✨`;
+    const toastText = window.PumpkinI18N ? window.PumpkinI18N.t("comboToast", combo) : `КОМБО ×${combo}! ✨`;
+    comboToastEl.textContent = toastText;
     comboToastEl.classList.add("is-active");
     clearTimeout(showComboToast._tid);
     showComboToast._tid = setTimeout(() => {
@@ -1300,12 +1355,15 @@
     countStirEl.textContent = `×${potions.stir}`;
     countBatEl.textContent = `×${potions.bat}`;
 
+    const curLang = window.PumpkinI18N ? window.PumpkinI18N.getLang() : "uk";
+    const isEn = curLang === "en";
+
     if (stirState.modeActive) {
       btnPotionStir.classList.add("is-active-tool");
-      labelStirEl.textContent = "Проведи!";
+      labelStirEl.textContent = isEn ? "Stir!" : "Проведи!";
     } else {
       btnPotionStir.classList.remove("is-active-tool");
-      labelStirEl.textContent = "Мішалка";
+      labelStirEl.textContent = window.PumpkinI18N ? window.PumpkinI18N.t("toolStirName") : "Мішалка";
     }
 
     const inNightPlay = !isGameOver && cyclePhase === "night";
@@ -1316,14 +1374,18 @@
       btnBuyStir.textContent = `🪙 ${SHOP_COSTS.stir}`;
       btnBuyStir.disabled = coins < SHOP_COSTS.stir;
       if (descBuyStirEl) {
-        descBuyStirEl.textContent = `У запасі: ×${potions.stir} (перемішує казан ложкою)`;
+        descBuyStirEl.textContent = isEn
+          ? `In stock: ×${potions.stir} (stirs cauldron with spoon)`
+          : `У запасі: ×${potions.stir} (перемішує казан ложкою)`;
       }
     }
     if (btnBuyBat) {
       btnBuyBat.textContent = `🪙 ${SHOP_COSTS.bat}`;
       btnBuyBat.disabled = coins < SHOP_COSTS.bat;
       if (descBuyBatEl) {
-        descBuyBatEl.textContent = `У запасі: ×${potions.bat} (забирає 2 зайві предмети)`;
+        descBuyBatEl.textContent = isEn
+          ? `In stock: ×${potions.bat} (removes 2 clutter items)`
+          : `У запасі: ×${potions.bat} (забирає 2 зайві предмети)`;
       }
     }
     if (btnBuyTime) {
@@ -1332,8 +1394,8 @@
       if (descBuyTimeEl) {
         descBuyTimeEl.textContent =
           nextLevelBonusSeconds > 0
-            ? `Куплено: +${nextLevelBonusSeconds} сек до наступної ночі!`
-            : "Додає +30 секунд на наступну ніч";
+            ? (isEn ? `Purchased: +${nextLevelBonusSeconds}s for next night!` : `Куплено: +${nextLevelBonusSeconds} сек до наступної ночі!`)
+            : (isEn ? "Adds +30 seconds for next night" : "Додає +30 секунд на наступну ніч");
       }
     }
     if (btnBuyNeeded) {
@@ -1342,8 +1404,8 @@
       if (descBuyNeededEl) {
         descBuyNeededEl.textContent =
           nextLevelStarterNeededCount > 0
-            ? `Куплено предметів на старт: ${nextLevelStarterNeededCount} шт.`
-            : "На початку ночі дає потрібний гостю предмет";
+            ? (isEn ? `Ordered items at start: ${nextLevelStarterNeededCount} pcs` : `Куплено предметів на старт: ${nextLevelStarterNeededCount} шт.`)
+            : (isEn ? "Provides an order ingredient at night start" : "На початку ночі дає потрібний гостю предмет");
       }
     }
     if (btnBuyGreed) {
@@ -1353,8 +1415,8 @@
       if (descBuyGreedEl) {
         descBuyGreedEl.textContent =
           greedLevel > 0
-            ? `Рівень ${greedLevel}: вищий курс секунд у монети та замовлень (до 15🪙)`
-            : "Більше монет за замовлення (до 15🪙) і збережений час";
+            ? (isEn ? `Level ${greedLevel}: higher coin rate (up to 15🪙)` : `Рівень ${greedLevel}: вищий курс секунд у монети та замовлень (до 15🪙)`)
+            : (isEn ? "More coins from orders (up to 15🪙) & time" : "Більше монет за замовлення (до 15🪙) і збережений час");
       }
     }
   }
@@ -1430,6 +1492,8 @@
 
   // Physics & Timer Step (Compound Multi-Circle Silhouette Colliders + 4 Weight Classes + Day/Night Transitions)
   function stepPhysics(dt) {
+    if (isMenuOpen) return;
+
     // Animate Dawn (Night -> Day Shop) and Dusk (Day Shop -> Next Night) transitions smoothly
     if (cyclePhase === "dawn_transition") {
       dayBlend = Math.min(1, dayBlend + dt * 0.85);
@@ -1462,7 +1526,7 @@
     }
 
     // 2-Minute Night Countdown Timer (runs only during active Night brewing)
-    const isModalOpen = grimoireDialog.open || gameOverDialog.open;
+    const isModalOpen = grimoireDialog.open || gameOverDialog.open || (settingsDialog && settingsDialog.open);
     if (!isGameOver && cyclePhase === "night" && !isModalOpen && !guestTransitionLock) {
       levelTimeRemaining = Math.max(0, levelTimeRemaining - dt);
       const currentWhole = Math.ceil(levelTimeRemaining);
@@ -1858,31 +1922,32 @@
 
     const nextMinTier = getMinDropTierForLevel(currentLevel + 1);
     const unlockedIngredient = window.INGREDIENT_TIERS[Math.min(19, nextMinTier + 3)];
+    const t = window.PumpkinI18N ? window.PumpkinI18N.t : ((k) => k);
+    const isEn = window.PumpkinI18N && window.PumpkinI18N.getLang() === "en";
 
     if (dayShopBadgeEl) {
       dayShopBadgeEl.textContent = unlockedIngredient ? `☀️${unlockedIngredient.emoji}` : "☀️";
     }
     if (dayShopTitleEl) {
-      dayShopTitleEl.textContent = `День ${currentLevel} — Денна Крамниця`;
+      dayShopTitleEl.textContent = t("dayShopTitle", currentLevel);
     }
     if (dayShopSubtitleEl) {
-      dayShopSubtitleEl.textContent = `Збережено ${savedSeconds} сек → +${timeBonusCoins} 🪙 монет!`;
+      dayShopSubtitleEl.textContent = t("dayShopSubtitle", savedSeconds, timeBonusCoins);
     }
     if (btnContinueToNight) {
-      btnContinueToNight.textContent = `🌙 Продовжити — Настає Ніч ${currentLevel + 1}!`;
+      btnContinueToNight.textContent = t("shopContinueBtn", currentLevel + 1);
     }
 
     // Update top guest card to show Murchik running the Sunny Daytime Shop
     drawMurchikShopAvatar();
-    guestStepBadgeEl.textContent = "☀️ ДЕНЬ";
-    guestNameEl.textContent = "Мурчик, Господар Денної Крамниці";
-    guestRewardTagEl.textContent = `+${timeBonusCoins} 🪙 за час`;
-    guestDialogueEl.textContent =
-      "«Світанок настав! Замість казана відкрилась наша крамниця — закуповуй припаси перед наступною ніччю!»";
+    guestStepBadgeEl.textContent = isEn ? "☀️ DAY" : "☀️ ДЕНЬ";
+    guestNameEl.textContent = t("murchikShopName");
+    guestRewardTagEl.textContent = t("timeRewardTag", timeBonusCoins);
+    guestDialogueEl.textContent = t("murchikShopDialogue");
     recipeSlotsEl.innerHTML = `
       <div class="day-summary-banner">
-        <span class="day-summary-badge">☀️ День ${currentLevel} пройдено</span>
-        <span class="day-summary-coins">⏱️ ${savedSeconds}с → +${timeBonusCoins} 🪙</span>
+        <span class="day-summary-badge">${t("daySummaryBadge", currentLevel)}</span>
+        <span class="day-summary-coins">${t("daySummaryCoins", savedSeconds, timeBonusCoins)}</span>
       </div>
     `;
     btnServe.style.display = "none";
@@ -1890,12 +1955,13 @@
 
     showDayNightBanner(
       "☀️",
-      `Настав День ${currentLevel}!`,
-      `Збережено ${savedSeconds}с (+${timeBonusCoins} 🪙) — відкривається денна крамниця!`,
+      isEn ? `Day ${currentLevel} has arrived!` : `Настав День ${currentLevel}!`,
+      isEn ? `Saved ${savedSeconds}s (+${timeBonusCoins} 🪙) — daytime shop is open!` : `Збережено ${savedSeconds}с (+${timeBonusCoins} 🪙) — відкривається денна крамниця!`,
       false,
       2900
     );
 
+    saveCurrentProgress();
     updateInterLevelModalStats();
     updateTopPills();
   }
@@ -1906,6 +1972,7 @@
     window.cozyAudio.init();
     window.cozyAudio.playNightfall();
 
+    const isEn = window.PumpkinI18N && window.PumpkinI18N.getLang() === "en";
     btnServe.style.display = "";
     cyclePhase = "dusk_transition";
     document.body.dataset.timeOfDay = "night";
@@ -1914,12 +1981,13 @@
 
     showDayNightBanner(
       "🌙",
-      `Настає Ніч ${currentLevel + 1}!`,
-      "Сутінки опускаються на майстерню — казан знову готовий до роботи!",
+      isEn ? `Night ${currentLevel + 1} approaches!` : `Настає Ніч ${currentLevel + 1}!`,
+      isEn ? "Dusk settles over the workshop — the cauldron is ready!" : "Сутінки опускаються на майстерню — казан знову готовий до роботи!",
       true,
       2300
     );
 
+    saveCurrentProgress();
     updateTopPills();
   }
 
@@ -1932,25 +2000,25 @@
     syncGuestOrderState();
 
     const bestTier = window.INGREDIENT_TIERS[highestTierReached] || window.INGREDIENT_TIERS[0];
+    const t = window.PumpkinI18N ? window.PumpkinI18N.t : ((k) => k);
+
     if (reason === "time") {
-      gameOverTitleEl.textContent = `⌛ Час Ночі ${currentLevel} Вийшов!`;
+      gameOverTitleEl.textContent = t("gameOverTimeTitle", currentLevel);
       summaryBadgeEl.textContent = "⏱️";
-      summaryRankEl.textContent = `Виконано замовлень: ${levelOrdersCompleted} з ${levelOrdersTarget}`;
-      summaryStoryEl.textContent =
-        "Дві хвилини минули до світанку! Використовуй важкі інгредієнти та 🥄 Велику Мішалку, щоб швидше з'єднувати пари.";
+      summaryRankEl.textContent = t("gameOverRank", levelOrdersCompleted, levelOrdersTarget);
+      summaryStoryEl.textContent = t("gameOverTimeStory");
     } else {
-      gameOverTitleEl.textContent = "🌙 Казан Переповнився!";
+      gameOverTitleEl.textContent = t("gameOverOverflowTitle");
       summaryBadgeEl.textContent = bestTier.emoji;
-      summaryRankEl.textContent = "Інгредієнти перелилися через край!";
-      summaryStoryEl.textContent =
-        "Подавай готові інгредієнти гостям та використовуй 🥄 Мішалку і 🦇 Кажанчика, щоб звільняти місце!";
+      summaryRankEl.textContent = t("gameOverOverflowTitle");
+      summaryStoryEl.textContent = t("gameOverOverflowStory");
     }
 
     finalGuestsEl.textContent = `${levelOrdersCompleted}/${levelOrdersTarget}`;
     finalSpiritsEl.textContent = `0с → +0 🪙`;
     finalScoreEl.textContent = `🪙 ${coins}`;
 
-    btnNextOrRetry.textContent = `🔄 Спробувати Ніч ${currentLevel} Знову`;
+    btnNextOrRetry.textContent = t("retryBtn", currentLevel);
     gameOverDialog.showModal();
   }
 
@@ -2040,27 +2108,172 @@
     }
 
     updateTopPills();
+    saveCurrentProgress();
   }
 
-  function resetFullGame() {
-    score = 0;
-    coins = 10;
-    greedLevel = 0;
-    potions = { stir: 2, bat: 1 };
-    nextLevelBonusSeconds = 0;
-    nextLevelStarterNeededCount = 0;
-    bankedSpirits = { 1: 0, 2: 0 };
+  function saveCurrentProgress() {
+    try {
+      localStorage.setItem(STORAGE_KEY_SAVED_LEVEL, String(currentLevel));
+      localStorage.setItem(STORAGE_KEY_SAVED_COINS, String(coins));
+      localStorage.setItem(STORAGE_KEY_SAVED_POTIONS, JSON.stringify(potions));
+      localStorage.setItem(STORAGE_KEY_SAVED_GREED, String(greedLevel));
+      localStorage.setItem(STORAGE_KEY_DISCOVERED_TIER, String(highestTierReached));
+    } catch (_) {}
+    updateMainMenuUI();
+    updateSettingsUI();
+  }
 
+  function getSavedLevel() {
+    const raw = localStorage.getItem(STORAGE_KEY_SAVED_LEVEL);
+    const parsed = parseInt(raw, 10);
+    return Number.isFinite(parsed) && parsed >= 1 ? parsed : 1;
+  }
+
+  function loadSavedProgress() {
+    const savedLvl = getSavedLevel();
+    const rawCoins = localStorage.getItem(STORAGE_KEY_SAVED_COINS);
+    if (rawCoins !== null) {
+      const parsedCoins = parseInt(rawCoins, 10);
+      if (Number.isFinite(parsedCoins) && parsedCoins >= 0) {
+        coins = parsedCoins;
+      }
+    }
+    const rawPotions = localStorage.getItem(STORAGE_KEY_SAVED_POTIONS);
+    if (rawPotions) {
+      try {
+        const parsedP = JSON.parse(rawPotions);
+        if (parsedP && typeof parsedP.stir === "number") potions.stir = parsedP.stir;
+        if (parsedP && typeof parsedP.bat === "number") potions.bat = parsedP.bat;
+      } catch (_) {}
+    }
+    const rawGreed = localStorage.getItem(STORAGE_KEY_SAVED_GREED);
+    if (rawGreed !== null) {
+      const parsedGreed = parseInt(rawGreed, 10);
+      if (Number.isFinite(parsedGreed) && parsedGreed >= 0) greedLevel = parsedGreed;
+    }
     highestTierReached = Math.max(
       Number(localStorage.getItem(STORAGE_KEY_DISCOVERED_TIER) || 0),
       0
     );
-    rescuedSpiritsTotal = 0;
-    dropsSinceSpiritOrb = 0;
-    comboCount = 0;
-    currentGuestIndex = 0;
+    currentLevel = savedLvl;
+    return savedLvl;
+  }
 
+  function resetSavedProgress() {
+    try {
+      localStorage.removeItem(STORAGE_KEY_SAVED_LEVEL);
+      localStorage.removeItem(STORAGE_KEY_SAVED_COINS);
+      localStorage.removeItem(STORAGE_KEY_SAVED_POTIONS);
+      localStorage.removeItem(STORAGE_KEY_SAVED_GREED);
+    } catch (_) {}
+    currentLevel = 1;
+    coins = 10;
+    greedLevel = 0;
+    potions = { stir: 2, bat: 1 };
+    saveCurrentProgress();
     startLevel(1, true);
+    updateMainMenuUI();
+    updateSettingsUI();
+  }
+
+  function updateMainMenuUI() {
+    const savedLvl = getSavedLevel();
+    const t = window.PumpkinI18N ? window.PumpkinI18N.t : ((k) => k);
+    if (mmTitle) mmTitle.textContent = t("gameTitle");
+    if (mmSubtitle) mmSubtitle.textContent = t("subtitle");
+
+    if (savedLvl > 1) {
+      if (lblPlayMain) lblPlayMain.textContent = t("playContinue", savedLvl);
+      if (btnPlayNewGame) btnPlayNewGame.style.display = "";
+      if (lblPlayNewGame) lblPlayNewGame.textContent = t("newGameBtn");
+      if (mmSavedBadge) mmSavedBadge.textContent = t("savedProgressBadge", savedLvl, coins);
+    } else {
+      if (lblPlayMain) lblPlayMain.textContent = t("playStart");
+      if (btnPlayNewGame) btnPlayNewGame.style.display = "none";
+      if (mmSavedBadge) mmSavedBadge.textContent = t("newProgressBadge");
+    }
+
+    if (lblOpenSettings) lblOpenSettings.textContent = t("settingsBtn");
+    if (lblOpenGrimoire) lblOpenGrimoire.textContent = t("grimoireBtn");
+    if (lblQuickLang) lblQuickLang.textContent = t("quickLang");
+  }
+
+  function updateSettingsUI() {
+    if (!window.PumpkinI18N) return;
+    const t = window.PumpkinI18N.t;
+    const curLang = window.PumpkinI18N.getLang();
+    const savedLvl = getSavedLevel();
+
+    if (btnSettingLangUk) {
+      btnSettingLangUk.classList.toggle("is-active", curLang === "uk");
+    }
+    if (btnSettingLangEn) {
+      btnSettingLangEn.classList.toggle("is-active", curLang === "en");
+    }
+
+    const soundOn = window.cozyAudio.isMuted ? !window.cozyAudio.isMuted() : true;
+    if (btnSettingSoundToggle) {
+      btnSettingSoundToggle.textContent = soundOn ? t("soundEnabled") : t("soundMuted");
+      btnSettingSoundToggle.classList.toggle("is-muted", !soundOn);
+    }
+    if (btnSound) {
+      btnSound.textContent = soundOn ? "🔊" : "🔇";
+    }
+
+    if (settingsCurrentNightInfo) {
+      settingsCurrentNightInfo.textContent = t("progressNightInfo", savedLvl);
+    }
+    if (settingsCurrentCoinsInfo) {
+      settingsCurrentCoinsInfo.textContent = t("progressCoinsInfo", coins, hiScore);
+    }
+
+    const settingsTitle = document.getElementById("settingsTitle");
+    if (settingsTitle) settingsTitle.textContent = t("settingsTitle");
+    const lblSettingLang = document.getElementById("lblSettingLang");
+    if (lblSettingLang) lblSettingLang.textContent = t("settingLangTitle");
+    const lblSettingAudio = document.getElementById("lblSettingAudio");
+    if (lblSettingAudio) lblSettingAudio.textContent = t("settingAudioTitle");
+    const lblSettingSoundEffects = document.getElementById("lblSettingSoundEffects");
+    if (lblSettingSoundEffects) lblSettingSoundEffects.textContent = curLang === "en" ? "Sound Effects & Music" : "Ефекти та Музика";
+    const lblSettingProgress = document.getElementById("lblSettingProgress");
+    if (lblSettingProgress) lblSettingProgress.textContent = t("settingProgressTitle");
+    if (lblResetProgress) lblResetProgress.textContent = t("resetProgressBtn");
+    if (lblCloseSettings) lblCloseSettings.textContent = t("closeSettings");
+  }
+
+  function setGameLanguage(lang) {
+    if (!window.PumpkinI18N) return;
+    window.PumpkinI18N.setLang(lang);
+    updateMainMenuUI();
+    updateSettingsUI();
+    updateTopPills();
+    updateToolAndShopButtons();
+    buildGrimoireCards();
+
+    if (activeGuestOrder && activeGuestOrder.template) {
+      const gInfo = window.PumpkinI18N.getGuestInfo(activeGuestOrder.template.id);
+      guestNameEl.textContent = gInfo.name;
+      guestDialogueEl.textContent = gInfo.dialogue;
+    }
+
+    if (labelStirEl) labelStirEl.textContent = window.PumpkinI18N.t("toolStirName");
+    const labelBat = document.getElementById("labelBat");
+    if (labelBat) labelBat.textContent = window.PumpkinI18N.t("toolBatName");
+    const labelGrimoire = document.getElementById("labelGrimoire");
+    if (labelGrimoire) labelGrimoire.textContent = window.PumpkinI18N.t("toolGrimoireName");
+
+    if (btnContinueToNight) {
+      btnContinueToNight.textContent = window.PumpkinI18N.t("shopContinueBtn", currentLevel + 1);
+    }
+    if (dayShopTitleEl) {
+      dayShopTitleEl.textContent = window.PumpkinI18N.t("dayShopTitle", currentLevel);
+    }
+
+    syncGuestOrderState();
+  }
+
+  function resetFullGame() {
+    resetSavedProgress();
   }
 
   // Main Render Loop
@@ -2177,7 +2390,7 @@
   }
 
   canvas.addEventListener("pointerdown", (e) => {
-    if (isGameOver || cyclePhase !== "night") return;
+    if (isMenuOpen || isGameOver || cyclePhase !== "night") return;
     window.cozyAudio.init();
     isPointerDown = true;
     try {
@@ -2202,7 +2415,7 @@
   });
 
   canvas.addEventListener("pointermove", (e) => {
-    if (isGameOver || cyclePhase !== "night") return;
+    if (isMenuOpen || isGameOver || cyclePhase !== "night") return;
     const pos = getCanvasCoords(e);
 
     if (stirState.modeActive) {
@@ -2230,7 +2443,7 @@
       }
     } catch (_) {}
 
-    if (cyclePhase !== "night") return;
+    if (isMenuOpen || cyclePhase !== "night") return;
 
     if (stirState.modeActive) {
       if (stirState.isDragging && stirState.distanceMoved >= 16) {
@@ -2259,7 +2472,7 @@
 
   // Keyboard Controls for PC
   window.addEventListener("keydown", (e) => {
-    if (grimoireDialog.open || gameOverDialog.open) return;
+    if (isMenuOpen || grimoireDialog.open || gameOverDialog.open || (settingsDialog && settingsDialog.open)) return;
 
     if (cyclePhase === "day_shop") {
       if (e.key === " " || e.key === "Enter") {
@@ -2287,6 +2500,32 @@
     }
   });
 
+  function openMainMenu() {
+    isMenuOpen = true;
+    saveCurrentProgress();
+    updateMainMenuUI();
+    if (mainMenuScreen) {
+      mainMenuScreen.style.display = "";
+      mainMenuScreen.classList.remove("is-hidden");
+    }
+  }
+
+  function closeMainMenu() {
+    isMenuOpen = false;
+    if (mainMenuScreen) {
+      mainMenuScreen.classList.add("is-hidden");
+      mainMenuScreen.style.display = "none";
+    }
+  }
+
+  function openSettings() {
+    window.cozyAudio.init();
+    updateSettingsUI();
+    if (settingsDialog) {
+      settingsDialog.showModal();
+    }
+  }
+
   // UI Button Listeners
   btnServe.addEventListener("pointerdown", handleServeAction);
   btnServe.addEventListener("click", handleServeAction);
@@ -2303,6 +2542,92 @@
     btnContinueToNight.addEventListener("click", startNightTransitionToNextLevel);
   }
 
+  if (btnPlayMain) {
+    btnPlayMain.addEventListener("click", () => {
+      window.cozyAudio.init();
+      const savedLvl = getSavedLevel();
+      closeMainMenu();
+      if (currentLevel !== savedLvl) {
+        startLevel(savedLvl, true);
+      }
+    });
+  }
+
+  if (btnPlayNewGame) {
+    btnPlayNewGame.addEventListener("click", () => {
+      window.cozyAudio.init();
+      resetSavedProgress();
+      closeMainMenu();
+    });
+  }
+
+  if (btnOpenSettings) {
+    btnOpenSettings.addEventListener("click", openSettings);
+  }
+  if (btnSettingsHeader) {
+    btnSettingsHeader.addEventListener("click", openSettings);
+  }
+
+  if (btnHome) {
+    btnHome.addEventListener("click", () => {
+      window.cozyAudio.init();
+      openMainMenu();
+    });
+  }
+
+  if (btnOpenGrimoireMenu) {
+    btnOpenGrimoireMenu.addEventListener("click", () => {
+      window.cozyAudio.init();
+      buildGrimoireCards();
+      if (grimoireDialog) grimoireDialog.showModal();
+    });
+  }
+
+  if (btnQuickLangToggle) {
+    btnQuickLangToggle.addEventListener("click", () => {
+      const cur = window.PumpkinI18N ? window.PumpkinI18N.getLang() : "uk";
+      setGameLanguage(cur === "uk" ? "en" : "uk");
+    });
+  }
+
+  if (btnPickLangUk) {
+    btnPickLangUk.addEventListener("click", () => {
+      setGameLanguage("uk");
+      if (firstLangDialog) firstLangDialog.close();
+    });
+  }
+
+  if (btnPickLangEn) {
+    btnPickLangEn.addEventListener("click", () => {
+      setGameLanguage("en");
+      if (firstLangDialog) firstLangDialog.close();
+    });
+  }
+
+  if (btnSettingLangUk) {
+    btnSettingLangUk.addEventListener("click", () => setGameLanguage("uk"));
+  }
+  if (btnSettingLangEn) {
+    btnSettingLangEn.addEventListener("click", () => setGameLanguage("en"));
+  }
+
+  if (btnSettingSoundToggle) {
+    btnSettingSoundToggle.addEventListener("click", () => {
+      window.cozyAudio.toggle();
+      updateSettingsUI();
+    });
+  }
+
+  if (btnResetProgress) {
+    btnResetProgress.addEventListener("click", () => {
+      const msg = window.PumpkinI18N ? window.PumpkinI18N.t("resetConfirm") : "Reset progress?";
+      if (window.confirm(msg)) {
+        resetSavedProgress();
+        if (settingsDialog) settingsDialog.close();
+      }
+    });
+  }
+
   btnGrimoire.addEventListener("click", () => {
     window.cozyAudio.init();
     buildGrimoireCards();
@@ -2312,11 +2637,15 @@
   btnSound.addEventListener("click", () => {
     const on = window.cozyAudio.toggle();
     btnSound.textContent = on ? "🔊" : "🔇";
+    updateSettingsUI();
   });
 
   btnRestart.addEventListener("click", () => {
     window.cozyAudio.init();
-    resetFullGame();
+    const msg = window.PumpkinI18N ? window.PumpkinI18N.t("resetConfirm") : "Reset progress?";
+    if (window.confirm(msg)) {
+      resetSavedProgress();
+    }
   });
 
   btnNextOrRetry.addEventListener("click", () => {
@@ -2359,8 +2688,22 @@
   // Initialize Game
   applyEmbeddedUiAssets();
   resizeCanvas();
+
+  const savedLevel = loadSavedProgress();
+  startLevel(savedLevel, true);
   buildGrimoireCards();
-  resetFullGame();
+
+  const savedLang = window.PumpkinI18N ? window.PumpkinI18N.getLang() : "uk";
+  setGameLanguage(savedLang);
+
+  if (window.PumpkinI18N && !window.PumpkinI18N.hasSavedLang() && firstLangDialog) {
+    firstLangDialog.showModal();
+  }
+
+  isMenuOpen = true;
+  updateMainMenuUI();
+  updateSettingsUI();
+
   requestAnimationFrame(frame);
 })();
 
