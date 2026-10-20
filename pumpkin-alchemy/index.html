@@ -142,7 +142,7 @@
           <div class="shop-row">
             <img class="shop-skill-thumb" id="shopThumbStir" src="assets/sprites/skill_stir.webp" alt="" width="38" height="38" />
             <div class="shop-row-info">
-              <strong>Велика Мішалка (+1 заряд)</strong>
+              <strong id="titleBuyStir">Велика Мішалка (+1 заряд)</strong>
               <span id="descBuyStir">Дозволяє 1 раз перемішати казан ложкою</span>
             </div>
             <button type="button" class="shop-buy-btn" id="btnBuyStir">🪙 25</button>
@@ -151,15 +151,15 @@
           <div class="shop-row">
             <img class="shop-skill-thumb" id="shopThumbBat" src="assets/sprites/skill_bat.webp" alt="" width="38" height="38" />
             <div class="shop-row-info">
-              <strong>Кажан-Помічник (+1 заряд)</strong>
-              <span id="descBuyBat">Забирає з казана 2 дрібні зайві предмети</span>
+              <strong id="titleBuyBat">Кажан-Помічник (+1 заряд)</strong>
+              <span id="descBuyBat">Забирає з казана 1 найменший предмет</span>
             </div>
             <button type="button" class="shop-buy-btn" id="btnBuyBat">🪙 30</button>
           </div>
 
           <div class="shop-row">
             <div class="shop-row-info">
-              <strong>⏳ Пісочний Годинник (+30 сек)</strong>
+              <strong id="titleBuyTime">⏳ Пісочний Годинник (+30 сек)</strong>
               <span id="descBuyTime">Додає +30 секунд на наступну ніч</span>
             </div>
             <button type="button" class="shop-buy-btn" id="btnBuyTime">🪙 35</button>
@@ -167,7 +167,7 @@
 
           <div class="shop-row">
             <div class="shop-row-info">
-              <strong>🎯 Інгредієнт Замовлення на старт</strong>
+              <strong id="titleBuyNeeded">🎯 Інгредієнт Замовлення на старт</strong>
               <span id="descBuyNeeded">На початку ночі дає потрібний гостю предмет</span>
             </div>
             <button type="button" class="shop-buy-btn" id="btnBuyNeeded">🪙 45</button>
@@ -175,7 +175,7 @@
 
           <div class="shop-row">
             <div class="shop-row-info">
-              <strong>🍀 Золотий Черпак (Бонус монет)</strong>
+              <strong id="titleBuyGreed">🍀 Золотий Черпак (Бонус монет)</strong>
               <span id="descBuyGreed">Більше монет за замовлення (до 15🪙) і збережений час</span>
             </div>
             <button type="button" class="shop-buy-btn" id="btnBuyGreed">🪙 60</button>
@@ -193,7 +193,7 @@
       <div class="stage-timer-card" id="timerPill" title="Час до світанку (2 хвилини). Збережені секунди конвертуються в монети!">
         <div class="stage-timer-header">
           <span class="stage-timer-icon" aria-hidden="true">⏳</span>
-          <span class="stage-timer-label">ДО СВІТАНКУ</span>
+          <span class="stage-timer-label" id="lblUntilDawn">ДО СВІТАНКУ</span>
         </div>
         <strong class="stage-timer-digits" id="timerValue">02:00</strong>
         <div class="stage-timer-bar" aria-hidden="true">
@@ -203,7 +203,7 @@
 
       <!-- Next Item Preview Bubble + Weight Category Badge -->
       <div class="next-preview" id="nextPreview" title="Наступний інгредієнт та його вагова категорія">
-        <span class="next-label">ДАЛІ</span>
+        <span class="next-label" id="lblNextItem">ДАЛІ</span>
         <canvas id="nextCanvas" width="52" height="52"></canvas>
         <span class="next-weight" id="nextWeightBadge">🪶 Легкий</span>
       </div>
@@ -222,19 +222,19 @@
         <span class="potion-name" id="labelStir">Мішалка</span>
       </button>
 
-      <button type="button" class="potion-btn potion-btn--bat" id="btnPotionBat" title="Кажан-Помічник: забирає з казана 2 дрібні зайві предмети! Купується у Денній Крамниці (Клавіша 2)">
+      <button type="button" class="potion-btn potion-btn--bat" id="btnPotionBat" title="Кажан-Помічник: забирає з казана 1 найменший предмет! Купується у Денній Крамниці (Клавіша 2)">
         <span class="potion-orb">
           <img class="potion-skill-img" id="imgSkillBat" src="assets/sprites/skill_bat.webp" alt="" width="54" height="54" />
           <span class="potion-price" id="countBat">×1</span>
         </span>
-        <span class="potion-name">Кажанчик</span>
+        <span class="potion-name" id="labelBat">Кажанчик</span>
       </button>
 
       <button type="button" class="potion-btn potion-btn--grimoire" id="btnGrimoire" title="Гримуар: переглянути 20 інгредієнтів, 4 категорії ваги та поєднання Духів">
         <span class="potion-orb potion-orb--book">
           <img class="potion-skill-img" id="imgSkillGrimoire" src="assets/sprites/skill_grimoire.webp" alt="" width="54" height="54" />
         </span>
-        <span class="potion-name">Гримуар</span>
+        <span class="potion-name" id="labelGrimoire">Гримуар</span>
       </button>
     </footer>
   </main>
@@ -250,15 +250,15 @@
       </header>
 
       <div class="dialog-body">
-        <h3 class="section-heading">👻 Таємниця Поєднання Духів</h3>
+        <h3 class="section-heading" id="grimoireSpiritHeading">👻 Таємниця Поєднання Духів</h3>
         <div class="spirit-evo-box" id="spiritEvoBox"></div>
 
-        <h3 class="section-heading">⚖️ 4 Категорії Ваги Інгредієнтів</h3>
+        <h3 class="section-heading" id="grimoireWeightHeading">⚖️ 4 Категорії Ваги Інгредієнтів</h3>
         <div class="weight-legend">
-          <span class="weight-pill weight-pill--light">🪶 Легкі: падають повільно й плавно</span>
-          <span class="weight-pill weight-pill--medium">⚖️ Середні: звичайна вага</span>
-          <span class="weight-pill weight-pill--heavy">🍎 Важкі: падають швидко, розштовхують легкі</span>
-          <span class="weight-pill weight-pill--very_heavy">🪨 Надважкі: пробивають шлях до самого дна!</span>
+          <span class="weight-pill weight-pill--light" id="pillLight">🪶 Легкі: падають повільно й плавно</span>
+          <span class="weight-pill weight-pill--medium" id="pillMedium">⚖️ Середні: звичайна вага</span>
+          <span class="weight-pill weight-pill--heavy" id="pillHeavy">🍎 Важкі: падають швидко, розштовхують легкі</span>
+          <span class="weight-pill weight-pill--very_heavy" id="pillVeryHeavy">🪨 Надважкі: пробивають шлях до самого дна!</span>
         </div>
 
         <h3 class="section-heading" id="grimoireSectionHeading">🎃 Відкриті Інгредієнти</h3>
@@ -267,7 +267,7 @@
 
       <footer class="dialog-footer">
         <form method="dialog">
-          <button type="submit" class="primary-btn">До казана! ✨</button>
+          <button type="submit" class="primary-btn" id="lblGrimoireClose">До казана! ✨</button>
         </form>
       </footer>
     </div>
@@ -293,15 +293,15 @@
 
         <div class="summary-stats">
           <div class="stat-box">
-            <span>Замовлення</span>
+            <span id="lblSummaryOrders">Замовлення</span>
             <strong id="finalGuests">0/2</strong>
           </div>
           <div class="stat-box">
-            <span>Бонус часу</span>
+            <span id="lblSummaryBonus">Бонус часу</span>
             <strong id="finalSpirits">0с → +0 🪙</strong>
           </div>
           <div class="stat-box">
-            <span>Гаманець</span>
+            <span id="lblSummaryWallet">Гаманець</span>
             <strong id="finalScore">🪙 10</strong>
           </div>
         </div>

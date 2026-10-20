@@ -649,11 +649,12 @@
     items.splice(idx, 1);
 
     const spTier = orb.spiritTier || 1;
-    const sObj = window.SPIRIT_TIERS[spTier] || window.SPIRIT_TIERS[1];
+    const isEn = window.PumpkinI18N && window.PumpkinI18N.getLang() === "en";
+    const sName = window.PumpkinI18N ? window.PumpkinI18N.getSpiritName(spTier) : sObj.name;
     rescuedSpiritsTotal++;
     window.cozyAudio.playQuestComplete();
     spawnSparkles(orb.x, orb.y, spTier === 2 ? "#ffe57f" : "#7dffef", 24);
-    addScore(sObj.score, orb.x, orb.y, `👻 ${sObj.name} ВРЯТОВАНИЙ! +${sObj.score}`);
+    addScore(sObj.score, orb.x, orb.y, isEn ? `👻 ${sName} RESCUED! +${sObj.score}` : `👻 ${sName} ВРЯТОВАНИЙ! +${sObj.score}`);
 
     flyingDeliveries.push({
       x: orb.x,
@@ -851,15 +852,18 @@
           slot.readyItem = null;
           servedCount++;
 
+          const isEn = window.PumpkinI18N && window.PumpkinI18N.getLang() === "en";
           if (it.isSpiritOrb) {
             rescuedSpiritsTotal++;
             const sObj = window.SPIRIT_TIERS[it.spiritTier] || window.SPIRIT_TIERS[1];
+            const sName = window.PumpkinI18N ? window.PumpkinI18N.getSpiritName(it.spiritTier || 1) : sObj.name;
             spawnSparkles(it.x, it.y, "#7dffef", 22);
-            addScore(sObj.score, it.x, it.y, `👻 ${sObj.name} +${sObj.score}`);
+            addScore(sObj.score, it.x, it.y, `👻 ${sName} +${sObj.score}`);
           } else {
             const tObj = window.INGREDIENT_TIERS[it.tier];
             spawnSparkles(it.x, it.y, "#48f0d8", 18);
-            addScore(tObj.score, it.x, it.y, `🍵 У ЗІЛЛЯ! +${tObj.score}`);
+            const intoPotionText = isEn ? `🍵 INTO POTION! +${tObj.score}` : `🍵 У ЗІЛЛЯ! +${tObj.score}`;
+            addScore(tObj.score, it.x, it.y, intoPotionText);
           }
 
           flyingDeliveries.push({
@@ -1159,10 +1163,12 @@
     // Case 1: Merging Two Spirits! (Дух-Світлячок + Дух-Світлячок = Архідух Ліхтаря!)
     if (a.isSpiritOrb && b.isSpiritOrb) {
       rescuedSpiritsTotal++;
+      const isEn = window.PumpkinI18N && window.PumpkinI18N.getLang() === "en";
       if (a.spiritTier === 1) {
         const royal = createItem(0, mx, my, 0, -1.2, true, 2);
         const sData = window.SPIRIT_TIERS[2];
-        addScore(sData.score, mx, my - 8, `👑 ${sData.name}! +${sData.score}`);
+        const sName = window.PumpkinI18N ? window.PumpkinI18N.getSpiritName(2) : sData.name;
+        addScore(sData.score, mx, my - 8, `👑 ${sName}! +${sData.score}`);
         window.cozyAudio.playQuestComplete();
         spawnSparkles(mx, my, "#ffe57f", 28);
         spawnSparkles(mx, my, "#7dffef", 18);
@@ -1170,7 +1176,8 @@
         return royal;
       } else {
         // Two Royal Spirits merged -> Blessing of the Arch-Spirits!
-        addScore(650, mx, my - 10, "👑 БЛАГОСЛОВЕННЯ АРХІДУХІВ +650!");
+        const blessingText = isEn ? "👑 BLESSING OF ARCH-SPIRITS +650!" : "👑 БЛАГОСЛОВЕННЯ АРХІДУХІВ +650!";
+        addScore(650, mx, my - 10, blessingText);
         addCoins(4, mx, my + 12, "+4 🪙");
         window.cozyAudio.playQuestComplete();
         spawnSparkles(mx, my, "#ffe57f", 36);
@@ -1263,10 +1270,11 @@
     potions.stir = Math.max(0, potions.stir - 1);
     window.cozyAudio.playMerge(8, 2);
     spawnSparkles(geom.cx, geom.cy, "#7dffef", 22);
+    const isEn = window.PumpkinI18N && window.PumpkinI18N.getLang() === "en";
     floatingTexts.push({
       x: geom.cx,
       y: geom.cy - geom.R * 0.25,
-      text: "🥄 КАЗАН ПЕРЕМІШАНО!",
+      text: isEn ? "🥄 CAULDRON STIRRED!" : "🥄 КАЗАН ПЕРЕМІШАНО!",
       alpha: 1,
       vy: -1.4,
       scale: 1.18
@@ -1274,15 +1282,20 @@
     updateToolAndShopButtons();
   }
 
-  // Tool 2: Bat Helper (Кажанчик) — rescues a Spirit Orb or removes up to 2 smallest unneeded clutter items!
+  // Tool 2: Bat Helper (Кажанчик) — removes strictly 1 smallest item from the cauldron!
   function useBatPotion() {
     if (isGameOver || cyclePhase !== "night" || items.length === 0 || batAnim || potions.bat <= 0) return;
 
-    const spiritOrb = items.find((it) => it.isSpiritOrb);
-    const candidates = [...items]
+    // Prefer unneeded non-spirit smallest item (lowest tier), then any smallest non-spirit, then any item
+    const unneeded = [...items]
       .filter((it) => !it.isNeededByGuest && !it.isSpiritOrb)
       .sort((a, b) => a.tier - b.tier || a.y - b.y);
-    const target = spiritOrb || candidates[0] || items[0];
+    const nonSpirits = [...items]
+      .filter((it) => !it.isSpiritOrb)
+      .sort((a, b) => a.tier - b.tier || a.y - b.y);
+    const allItems = [...items].sort((a, b) => (a.isSpiritOrb ? 1 : 0) - (b.isSpiritOrb ? 1 : 0) || a.tier - b.tier);
+
+    const target = unneeded[0] || nonSpirits[0] || allItems[0];
     if (!target) return;
 
     potions.bat--;
@@ -1293,7 +1306,7 @@
       x: geom.cx - geom.R * 0.8,
       y: geom.neckTopY - 50,
       targetItem: target,
-      secondaryItem: !spiritOrb && candidates.length > 1 ? candidates[1] : null,
+      secondaryItem: null, // Strictly 1 smallest item!
       phase: "swoop",
       progress: 0
     };
@@ -2244,30 +2257,112 @@
   function setGameLanguage(lang) {
     if (!window.PumpkinI18N) return;
     window.PumpkinI18N.setLang(lang);
+    const isEn = lang === "en";
+    const t = window.PumpkinI18N.t;
+
     updateMainMenuUI();
     updateSettingsUI();
     updateTopPills();
     updateToolAndShopButtons();
     buildGrimoireCards();
 
+    // Stage countdown & Next label
+    const lblUntilDawn = document.getElementById("lblUntilDawn");
+    if (lblUntilDawn) lblUntilDawn.textContent = isEn ? "UNTIL DAWN" : "ДО СВІТАНКУ";
+    const lblNextItem = document.getElementById("lblNextItem");
+    if (lblNextItem) lblNextItem.textContent = isEn ? "NEXT" : "ДАЛІ";
+
+    // Shelf labels & tooltips
+    if (labelStirEl) labelStirEl.textContent = t("toolStirName");
+    const labelBat = document.getElementById("labelBat");
+    if (labelBat) labelBat.textContent = t("toolBatName");
+    const labelGrimoire = document.getElementById("labelGrimoire");
+    if (labelGrimoire) labelGrimoire.textContent = t("toolGrimoireName");
+
+    if (btnPotionStir) {
+      btnPotionStir.title = isEn
+        ? "Big Stirring Spoon: drag spoon across the cauldron to stir ingredients! (Key 1)"
+        : "Велика Мішалка: проведи всередині казана, щоб перемішати інгредієнти! (Клавіша 1)";
+    }
+    if (btnPotionBat) {
+      btnPotionBat.title = isEn
+        ? "Bat Helper: removes 1 smallest item from the cauldron! (Key 2)"
+        : "Кажан-Помічник: забирає з казана 1 найменший предмет! (Клавіша 2)";
+    }
+    if (btnGrimoire) {
+      btnGrimoire.title = isEn
+        ? "Grimoire: view 20 ingredients, 4 weight classes, and spirit fusions"
+        : "Гримуар: переглянути 20 інгредієнтів, 4 категорії ваги та поєднання Духів";
+    }
+
+    // Top action buttons tooltips
+    if (btnHome) btnHome.title = isEn ? "Main Menu" : "Головне меню";
+    if (btnSettingsHeader) btnSettingsHeader.title = isEn ? "Settings" : "Налаштування";
+    if (btnRestart) btnRestart.title = isEn ? "Restart from Night 1" : "Почати спочатку";
+
+    // Active guest
     if (activeGuestOrder && activeGuestOrder.template) {
       const gInfo = window.PumpkinI18N.getGuestInfo(activeGuestOrder.template.id);
       guestNameEl.textContent = gInfo.name;
       guestDialogueEl.textContent = gInfo.dialogue;
     }
 
-    if (labelStirEl) labelStirEl.textContent = window.PumpkinI18N.t("toolStirName");
-    const labelBat = document.getElementById("labelBat");
-    if (labelBat) labelBat.textContent = window.PumpkinI18N.t("toolBatName");
-    const labelGrimoire = document.getElementById("labelGrimoire");
-    if (labelGrimoire) labelGrimoire.textContent = window.PumpkinI18N.t("toolGrimoireName");
+    // Day shop titles and descriptions
+    const shopItemDict = window.PumpkinI18N.TRANSLATIONS[lang].shopItems;
+    if (shopItemDict) {
+      const titleStir = document.getElementById("titleBuyStir");
+      if (titleStir) titleStir.textContent = shopItemDict.stir.name;
+      if (descBuyStirEl) descBuyStirEl.textContent = shopItemDict.stir.desc;
+
+      const titleBat = document.getElementById("titleBuyBat");
+      if (titleBat) titleBat.textContent = shopItemDict.bat.name;
+      if (descBuyBatEl) descBuyBatEl.textContent = shopItemDict.bat.desc;
+
+      const titleTime = document.getElementById("titleBuyTime");
+      if (titleTime) titleTime.textContent = shopItemDict.time.name;
+      if (descBuyTimeEl) descBuyTimeEl.textContent = shopItemDict.time.desc;
+
+      const titleNeeded = document.getElementById("titleBuyNeeded");
+      if (titleNeeded) titleNeeded.textContent = shopItemDict.needed.name;
+      if (descBuyNeededEl) descBuyNeededEl.textContent = shopItemDict.needed.desc;
+
+      const titleGreed = document.getElementById("titleBuyGreed");
+      if (titleGreed) titleGreed.textContent = shopItemDict.greed.name;
+      if (descBuyGreedEl) descBuyGreedEl.textContent = shopItemDict.greed.desc;
+    }
 
     if (btnContinueToNight) {
-      btnContinueToNight.textContent = window.PumpkinI18N.t("shopContinueBtn", currentLevel + 1);
+      btnContinueToNight.textContent = t("shopContinueBtn", currentLevel + 1);
     }
     if (dayShopTitleEl) {
-      dayShopTitleEl.textContent = window.PumpkinI18N.t("dayShopTitle", currentLevel);
+      dayShopTitleEl.textContent = t("dayShopTitle", currentLevel);
     }
+
+    // Grimoire dialog headings & weight pills
+    const grimoireTitle = document.getElementById("grimoireTitle");
+    if (grimoireTitle) grimoireTitle.textContent = t("grimoireTitle");
+    const grimoireSpiritHeading = document.getElementById("grimoireSpiritHeading");
+    if (grimoireSpiritHeading) grimoireSpiritHeading.textContent = t("spiritEvoHeading");
+    const grimoireWeightHeading = document.getElementById("grimoireWeightHeading");
+    if (grimoireWeightHeading) grimoireWeightHeading.textContent = t("weightsHeading");
+    const pillLight = document.getElementById("pillLight");
+    if (pillLight) pillLight.textContent = window.PumpkinI18N.TRANSLATIONS[lang].weightPills.light;
+    const pillMedium = document.getElementById("pillMedium");
+    if (pillMedium) pillMedium.textContent = window.PumpkinI18N.TRANSLATIONS[lang].weightPills.medium;
+    const pillHeavy = document.getElementById("pillHeavy");
+    if (pillHeavy) pillHeavy.textContent = window.PumpkinI18N.TRANSLATIONS[lang].weightPills.heavy;
+    const pillVeryHeavy = document.getElementById("pillVeryHeavy");
+    if (pillVeryHeavy) pillVeryHeavy.textContent = window.PumpkinI18N.TRANSLATIONS[lang].weightPills.very_heavy;
+    const lblGrimoireClose = document.getElementById("lblGrimoireClose");
+    if (lblGrimoireClose) lblGrimoireClose.textContent = t("grimoireCloseBtn");
+
+    // Game Over summary labels
+    const lblSummaryOrders = document.getElementById("lblSummaryOrders");
+    if (lblSummaryOrders) lblSummaryOrders.textContent = t("summaryOrdersLabel");
+    const lblSummaryBonus = document.getElementById("lblSummaryBonus");
+    if (lblSummaryBonus) lblSummaryBonus.textContent = t("summaryBonusLabel");
+    const lblSummaryWallet = document.getElementById("lblSummaryWallet");
+    if (lblSummaryWallet) lblSummaryWallet.textContent = t("summaryWalletLabel");
 
     syncGuestOrderState();
   }

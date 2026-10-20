@@ -65,7 +65,7 @@ window.PumpkinI18N = (() => {
         },
         bat: {
           name: "Кажан-Помічник (+1 заряд)",
-          desc: "Забирає з казана 2 дрібні зайві предмети"
+          desc: "Забирає з казана 1 найменший предмет"
         },
         time: {
           name: "⏳ Пісочний Годинник (+30 сек)",
@@ -249,7 +249,7 @@ window.PumpkinI18N = (() => {
         },
         bat: {
           name: "Bat Helper (+1 charge)",
-          desc: "Removes 2 tiny clutter items from the cauldron"
+          desc: "Removes 1 smallest item from the cauldron"
         },
         time: {
           name: "⏳ Hourglass (+30 sec)",
