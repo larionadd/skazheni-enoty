@@ -280,9 +280,9 @@ body {
 /* Cozy Story Guest Card — Locked Height with Generated Velvet & Filigree Frame */
 .guest-card {
   margin-top: 6px;
-  height: 126px;
-  min-height: 126px;
-  max-height: 126px;
+  height: 132px;
+  min-height: 132px;
+  max-height: 132px;
   background-color: #210d3d;
   background-image: var(--ui-guest-card, url("assets/sprites/ui_guest_card.webp"));
   background-size: 100% 100%;
@@ -290,11 +290,11 @@ body {
   background-repeat: no-repeat;
   border: none;
   border-radius: 14px;
-  padding: 7px 10px;
+  padding: 6px 10px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 4px;
+  gap: 3px;
   box-shadow:
     0 6px 14px rgba(0, 0, 0, 0.48),
     0 0 12px rgba(181, 72, 255, 0.18);
@@ -311,14 +311,14 @@ body {
   display: flex;
   align-items: center;
   gap: 9px;
-  height: 58px;
+  height: 52px;
   flex-shrink: 0;
 }
 
 .guest-avatar-wrap {
   position: relative;
-  width: 56px;
-  height: 56px;
+  width: 50px;
+  height: 50px;
   border-radius: 13px;
   background: radial-gradient(circle at 50% 35%, #5b2e8e 0%, #210e3b 100%);
   border: 2px solid #ffd278;
@@ -399,17 +399,17 @@ body {
   overflow: hidden;
 }
 
-/* Full-width Recipe Bar at bottom of Guest Card (Fixed Height = 50px) */
+/* Full-width Recipe Bar at bottom of Guest Card (Single Row, Large Icons) */
 .recipe-bar {
-  height: 50px;
-  min-height: 50px;
-  max-height: 50px;
+  height: 56px;
+  min-height: 56px;
+  max-height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
-  border-top: 1px solid rgba(255, 214, 153, 0.16);
-  padding-top: 3px;
+  gap: 8px;
+  border-top: 1px solid rgba(255, 214, 153, 0.18);
+  padding: 4px 2px 2px;
 }
 
 .recipe-slots {
@@ -418,48 +418,94 @@ body {
   height: 100%;
   display: flex;
   align-items: center;
-  align-content: center;
-  gap: 4px;
-  flex-wrap: wrap;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.recipe-slots::-webkit-scrollbar {
+  display: none;
 }
 
 .recipe-slot {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 7px 2px 4px;
-  border-radius: 8px;
-  background: rgba(18, 8, 34, 0.78);
-  border: 1.5px solid rgba(255, 255, 255, 0.22);
-  font-size: 0.67rem;
-  font-weight: 800;
-  color: #f2e2fc;
-  white-space: nowrap;
-  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  border-radius: 12px;
+  background: rgba(18, 8, 34, 0.85);
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+  flex-shrink: 0;
+  cursor: default;
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
 }
 
 .slot-sprite {
-  width: 17px;
-  height: 17px;
+  width: 38px;
+  height: 38px;
   object-fit: contain;
   display: block;
   flex-shrink: 0;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.7));
 }
 
 .recipe-slot.is-ready {
   border-color: #ffd54f;
-  background: rgba(255, 193, 48, 0.26);
-  color: #fff8d6;
-  box-shadow: 0 0 10px rgba(255, 204, 56, 0.55);
+  background: rgba(255, 193, 48, 0.28);
+  box-shadow: 0 0 14px rgba(255, 204, 56, 0.65);
   cursor: pointer;
-  animation: slotPulse 1.1s infinite alternate;
+  animation: slotPulse 1.05s infinite alternate;
 }
 
 .recipe-slot.is-done {
   border-color: #48f0d8;
   background: rgba(45, 212, 184, 0.24);
-  color: #bdfcf2;
+  box-shadow: 0 0 10px rgba(72, 240, 216, 0.45);
+}
+
+.recipe-slot-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+
+.recipe-slot.is-done .recipe-slot-badge {
+  background: #2dd4bf;
+  color: #042f2e;
+  border: 1.5px solid #ccfbf1;
+}
+
+.recipe-slot.is-ready .recipe-slot-badge {
+  background: #fbbf24;
+  color: #451a03;
+  border: 1.5px solid #fffbeb;
+  animation: badgeBounce 0.8s infinite alternate;
+}
+
+@keyframes badgeBounce {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.15);
+  }
 }
 
 @keyframes slotPulse {
@@ -467,25 +513,36 @@ body {
     transform: scale(1);
   }
   to {
-    transform: scale(1.04);
+    transform: scale(1.05);
   }
 }
 
+/* Enlarge «Подати!» Button for Mobile Touch Targets */
 .serve-btn {
   appearance: none;
-  border: 2px solid #ffe899;
-  border-radius: 10px;
-  padding: 6px 10px;
-  background: linear-gradient(180deg, #42e8c8 0%, #159e89 100%);
-  color: #072924;
+  border: 2.5px solid #ffe899;
+  border-radius: 14px;
+  padding: 8px 16px;
+  min-height: 48px;
+  min-width: 96px;
+  background: linear-gradient(180deg, #42e8c8 0%, #0d9488 100%);
+  color: #052e27;
   font-family: inherit;
-  font-size: 0.72rem;
+  font-size: 0.95rem;
   font-weight: 900;
+  letter-spacing: 0.02em;
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
-  box-shadow: 0 0 14px rgba(72, 240, 216, 0.65);
-  transition: transform 0.14s ease, filter 0.14s ease, opacity 0.14s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow:
+    0 4px 14px rgba(72, 240, 216, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  touch-action: manipulation;
+  transition: transform 0.14s ease, filter 0.14s ease, opacity 0.14s ease, box-shadow 0.14s ease;
 }
 
 .serve-btn:not(:disabled) {
@@ -496,10 +553,14 @@ body {
   filter: brightness(1.1);
 }
 
+.serve-btn:not(:disabled):active {
+  transform: scale(0.95);
+}
+
 .serve-btn:disabled {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.4);
   box-shadow: none;
   cursor: default;
 }
@@ -509,7 +570,7 @@ body {
     transform: scale(1);
   }
   to {
-    transform: scale(1.05);
+    transform: scale(1.04);
   }
 }
 

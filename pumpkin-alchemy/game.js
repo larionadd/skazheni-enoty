@@ -283,7 +283,11 @@
   let levelOrdersCompleted = 0;
   let levelOrdersTarget = 2;
 
-  let highestTierReached = 0;
+  const STORAGE_KEY_DISCOVERED_TIER = "pumpkin_alchemy_discovered_tier_v1";
+  let highestTierReached = Math.max(
+    Number(localStorage.getItem(STORAGE_KEY_DISCOVERED_TIER) || 0),
+    0
+  );
   let isGameOver = false;
 
   let currentGuestIndex = 0;
@@ -403,7 +407,7 @@
     return Math.round(SHOP_COSTS.greedBase * Math.pow(1.4, greedLevel));
   }
 
-  // Populate Grimoire: Spirit Evolution Box + 20 Weighted Ingredients
+  // Populate Grimoire: Spirit Evolution Box + Discovered Weighted Ingredients
   function buildGrimoireCards() {
     const spriteUrls = window.SPRITE_DATA_URLS || {};
 
@@ -428,8 +432,18 @@
       `;
     }
 
+    const headingEl = document.getElementById("grimoireSectionHeading");
+    const totalIngredients = window.INGREDIENT_TIERS.length;
+    const unlockedCount = Math.min(highestTierReached + 1, totalIngredients);
+    if (headingEl) {
+      headingEl.textContent = `🎃 Відкриті Інгредієнти (${unlockedCount} з ${totalIngredients})`;
+    }
+
     evolutionGridEl.innerHTML = "";
     window.INGREDIENT_TIERS.forEach((t, idx) => {
+      // Hide all locked ingredients — player only sees already discovered ones!
+      if (idx > highestTierReached) return;
+
       const wProfile = window.WEIGHT_PROFILES[t.weightClass] || window.WEIGHT_PROFILES.medium;
       const card = document.createElement("div");
       card.className = "evo-item";
@@ -708,29 +722,39 @@
       const iconImg = document.createElement("img");
       iconImg.className = "slot-sprite";
 
-      const labelSpan = document.createElement("span");
-
+      let ingredientName = "";
       if (slot.type === "spirit") {
         const sObj = window.SPIRIT_TIERS[slot.spiritTier] || window.SPIRIT_TIERS[1];
         iconImg.src = spriteUrls[sObj.spriteKey] || `assets/sprites/${sObj.spriteKey}.webp`;
         iconImg.alt = sObj.name;
-        labelSpan.textContent = slot.done
-          ? `${sObj.name} ✓`
-          : slot.readyItem
-          ? `${sObj.name} ★`
-          : sObj.name;
+        ingredientName = sObj.name;
       } else {
         const tObj = window.INGREDIENT_TIERS[slot.tier] || window.INGREDIENT_TIERS[0];
         iconImg.src = spriteUrls[tObj.spriteKey] || `assets/sprites/${tObj.spriteKey}.webp`;
         iconImg.alt = tObj.name;
-        labelSpan.textContent = slot.done
-          ? `${tObj.name} ✓`
-          : slot.readyItem
-          ? `${tObj.name} ★`
-          : tObj.name;
+        ingredientName = tObj.name;
       }
 
-      pill.append(iconImg, labelSpan);
+      pill.title = slot.done
+        ? `${ingredientName} (Готово ✓)`
+        : slot.readyItem
+        ? `${ingredientName} (Можна подати! ★)`
+        : ingredientName;
+
+      pill.appendChild(iconImg);
+
+      if (slot.done) {
+        const badge = document.createElement("span");
+        badge.className = "recipe-slot-badge";
+        badge.textContent = "✓";
+        pill.appendChild(badge);
+      } else if (slot.readyItem) {
+        const badge = document.createElement("span");
+        badge.className = "recipe-slot-badge";
+        badge.textContent = "★";
+        pill.appendChild(badge);
+      }
+
       recipeSlotsEl.appendChild(pill);
     });
 
@@ -955,8 +979,10 @@
     };
     updateItemWorldCircles(item);
     items.push(item);
-    if (!isSpiritOrb) {
-      highestTierReached = Math.max(highestTierReached, safeTier);
+    if (!isSpiritOrb && safeTier > highestTierReached) {
+      highestTierReached = safeTier;
+      localStorage.setItem(STORAGE_KEY_DISCOVERED_TIER, String(highestTierReached));
+      buildGrimoireCards();
     }
     syncGuestOrderState();
     return item;
@@ -1960,6 +1986,13 @@
     nextTier = picked.tier;
     nextSpiritTier = picked.spiritTier;
 
+    const maxStarterTier = Math.max(currentTier, nextTier);
+    if (maxStarterTier > highestTierReached) {
+      highestTierReached = maxStarterTier;
+      localStorage.setItem(STORAGE_KEY_DISCOVERED_TIER, String(highestTierReached));
+      buildGrimoireCards();
+    }
+
     renderNextPreview();
     currentGuestIndex++;
     loadGuest(currentGuestIndex);
@@ -1992,7 +2025,10 @@
     nextLevelStarterNeededCount = 0;
     bankedSpirits = { 1: 0, 2: 0 };
 
-    highestTierReached = 0;
+    highestTierReached = Math.max(
+      Number(localStorage.getItem(STORAGE_KEY_DISCOVERED_TIER) || 0),
+      0
+    );
     rescuedSpiritsTotal = 0;
     dropsSinceSpiritOrb = 0;
     comboCount = 0;
@@ -2106,9 +2142,11 @@
 
   function getCanvasCoords(e) {
     const rect = canvas.getBoundingClientRect();
+    const scaleX = rect.width ? (geom.w / rect.width) : 1;
+    const scaleY = rect.height ? (geom.h / rect.height) : 1;
     return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
     };
   }
 
@@ -2116,7 +2154,9 @@
     if (isGameOver || cyclePhase !== "night") return;
     window.cozyAudio.init();
     isPointerDown = true;
-    canvas.setPointerCapture(e.pointerId);
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch (_) {}
 
     const pos = getCanvasCoords(e);
 
@@ -2131,6 +2171,8 @@
     }
 
     targetCatX = clampCatX(pos.x);
+    // Instant tracking on touch/drag so Murchik doesn't lag behind the player's finger
+    catX = targetCatX;
   });
 
   canvas.addEventListener("pointermove", (e) => {
@@ -2146,12 +2188,22 @@
 
     if (isPointerDown || e.pointerType === "mouse") {
       targetCatX = clampCatX(pos.x);
+      if (isPointerDown) {
+        // Direct snappy tracking during finger drag: ingredient is 1:1 with finger
+        catX = targetCatX;
+      }
     }
   });
 
   canvas.addEventListener("pointerup", (e) => {
     if (!isPointerDown) return;
     isPointerDown = false;
+    try {
+      if (canvas.hasPointerCapture(e.pointerId)) {
+        canvas.releasePointerCapture(e.pointerId);
+      }
+    } catch (_) {}
+
     if (cyclePhase !== "night") return;
 
     if (stirState.modeActive) {
@@ -2169,9 +2221,14 @@
     dropCurrentItem();
   });
 
-  canvas.addEventListener("pointercancel", () => {
+  canvas.addEventListener("pointercancel", (e) => {
     isPointerDown = false;
     stirState.isDragging = false;
+    try {
+      if (e && canvas.hasPointerCapture(e.pointerId)) {
+        canvas.releasePointerCapture(e.pointerId);
+      }
+    } catch (_) {}
   });
 
   // Keyboard Controls for PC
@@ -2221,6 +2278,7 @@
 
   btnGrimoire.addEventListener("click", () => {
     window.cozyAudio.init();
+    buildGrimoireCards();
     grimoireDialog.showModal();
   });
 
