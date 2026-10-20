@@ -715,8 +715,8 @@
         pill.classList.add("is-done");
       } else if (slot.readyItem) {
         pill.classList.add("is-ready");
-        pill.title = "Натисни, щоб подати гостю!";
-        pill.addEventListener("click", () => serveReadyIngredients());
+        pill.addEventListener("pointerdown", handleServeAction);
+        pill.addEventListener("click", handleServeAction);
       }
 
       const iconImg = document.createElement("img");
@@ -735,11 +735,14 @@
         ingredientName = tObj.name;
       }
 
-      pill.title = slot.done
-        ? `${ingredientName} (Готово ✓)`
-        : slot.readyItem
-        ? `${ingredientName} (Можна подати! ★)`
-        : ingredientName;
+      pill.setAttribute(
+        "aria-label",
+        slot.done
+          ? `${ingredientName} (Готово)`
+          : slot.readyItem
+          ? `${ingredientName} (Готово до подачі)`
+          : ingredientName
+      );
 
       pill.appendChild(iconImg);
 
@@ -764,6 +767,24 @@
     if (!guestTransitionLock && activeGuestOrder.slots.every((s) => s.done)) {
       completeCurrentGuestOrder();
     }
+  }
+
+  // Instant response handler for touch & mouse: prevents mobile browser hover/tooltip delay
+  let lastServeTime = 0;
+  function handleServeAction(e) {
+    if (btnServe.disabled || !activeGuestOrder || guestTransitionLock || isGameOver) {
+      return;
+    }
+    const now = Date.now();
+    if (now - lastServeTime < 280) return;
+    lastServeTime = now;
+
+    if (e) {
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+    }
+    window.cozyAudio.init();
+    serveReadyIngredients();
   }
 
   // Extract ready ingredients / spirits from the cauldron and fly them to the guest!
@@ -2262,7 +2283,8 @@
   });
 
   // UI Button Listeners
-  btnServe.addEventListener("click", serveReadyIngredients);
+  btnServe.addEventListener("pointerdown", handleServeAction);
+  btnServe.addEventListener("click", handleServeAction);
   btnPotionStir.addEventListener("click", toggleStirMode);
   btnPotionBat.addEventListener("click", useBatPotion);
 

@@ -549,8 +549,10 @@ body {
   animation: servePulse 0.95s infinite alternate;
 }
 
-.serve-btn:hover:not(:disabled) {
-  filter: brightness(1.1);
+@media (hover: hover) {
+  .serve-btn:hover:not(:disabled) {
+    filter: brightness(1.1);
+  }
 }
 
 .serve-btn:not(:disabled):active {
