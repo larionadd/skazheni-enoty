@@ -1880,9 +1880,12 @@
     guestDialogueEl.textContent =
       "«Світанок настав! Замість казана відкрилась наша крамниця — закуповуй припаси перед наступною ніччю!»";
     recipeSlotsEl.innerHTML = `
-      <span class="recipe-slot is-done">☀️ День ${currentLevel} пройдено</span>
-      <span class="recipe-slot is-ready">⏱️ ${savedSeconds}с → +${timeBonusCoins} 🪙</span>
+      <div class="day-summary-banner">
+        <span class="day-summary-badge">☀️ День ${currentLevel} пройдено</span>
+        <span class="day-summary-coins">⏱️ ${savedSeconds}с → +${timeBonusCoins} 🪙</span>
+      </div>
     `;
+    btnServe.style.display = "none";
     btnServe.disabled = true;
 
     showDayNightBanner(
@@ -1903,6 +1906,7 @@
     window.cozyAudio.init();
     window.cozyAudio.playNightfall();
 
+    btnServe.style.display = "";
     cyclePhase = "dusk_transition";
     document.body.dataset.timeOfDay = "night";
     hideElement(dayShopStageEl);
@@ -1962,6 +1966,7 @@
       dayShopStageEl.removeAttribute("data-closing");
       dayShopStageEl.hidden = true;
     }
+    btnServe.style.display = "";
     showElement(nextPreviewEl);
     showElement(timerPillEl);
 

@@ -1491,8 +1491,13 @@ body[data-time-of-day="day"] .next-preview {
 }
 
 .day-shop-header {
-  border-bottom: 1px solid rgba(255, 214, 130, 0.25);
-  padding-bottom: 5px;
+  background: rgba(18, 8, 30, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 214, 130, 0.42);
+  border-radius: 14px;
+  padding: 7px 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
   flex-shrink: 0;
 }
 
@@ -1516,10 +1521,10 @@ body[data-time-of-day="day"] .next-preview {
 
 .day-shop-title-wrap h2 {
   margin: 0;
-  font-size: 0.94rem;
+  font-size: 0.95rem;
   font-weight: 900;
-  color: #fff4be;
-  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 0.8);
+  color: #fff9d6;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1527,17 +1532,17 @@ body[data-time-of-day="day"] .next-preview {
 
 .day-shop-title-wrap p {
   margin: 1px 0 0;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  color: #ffdfad;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+  color: #ffd899;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .day-shop-wallet {
-  background: rgba(28, 13, 4, 0.78);
+  background: rgba(28, 13, 4, 0.9);
   border: 1.5px solid #ffd86b;
   border-radius: 999px;
   padding: 3px 9px;
@@ -1546,7 +1551,7 @@ body[data-time-of-day="day"] .next-preview {
   color: #ffe878;
   white-space: nowrap;
   flex-shrink: 0;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
 }
 
 .day-shop-list {
@@ -1554,32 +1559,98 @@ body[data-time-of-day="day"] .next-preview {
   min-height: 0;
   overflow-y: auto;
   padding-right: 2px;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
 }
 
 .day-shop-stage .shop-row {
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(255, 212, 128, 0.18);
-  border-radius: 0;
-  box-shadow: none;
-  padding: 6px 4px;
+  background: rgba(18, 8, 30, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 215, 128, 0.32);
+  border-radius: 14px;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.day-shop-stage .shop-skill-thumb {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(45, 18, 70, 0.85);
+  border: 1.5px solid #ffd54f;
+  padding: 2px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.day-shop-stage .shop-row-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .day-shop-stage .shop-row-info strong {
-  font-size: 0.78rem;
-  color: #fff9e6;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95), 0 0 6px rgba(0, 0, 0, 0.75);
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .day-shop-stage .shop-row-info span {
-  font-size: 0.66rem;
-  color: #ffdfad;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+  font-size: 0.70rem;
+  font-weight: 700;
+  color: #ffe6bd;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  line-height: 1.25;
 }
 
 .day-shop-stage .shop-buy-btn {
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.65), 0 0 8px rgba(255, 174, 52, 0.35);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.65), 0 0 8px rgba(255, 174, 52, 0.4);
+}
+
+/* Day Summary Pill Banner inside Top Card during daytime */
+.day-summary-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  flex-wrap: nowrap;
+}
+
+.day-summary-badge {
+  background: rgba(45, 212, 184, 0.24);
+  border: 1.5px solid #2dd4bf;
+  color: #ccfbf1;
+  font-size: 0.74rem;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.day-summary-coins {
+  background: rgba(251, 191, 36, 0.24);
+  border: 1.5px solid #fbbf24;
+  color: #fef3c7;
+  font-size: 0.74rem;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .day-shop-footer {
