@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="uk" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Квестопис — Редактор сюжетних квестів</title>
+  <meta name="description" content="Автономний вебдодаток для зручного редагування та порівняння текстів сюжетних квестів українською мовою з підсвіткою на рівні слів.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Банер попередження про автономність та локальне збереження -->
+  <aside id="sync-banner" class="sync-notice-banner" role="alert">
+    <div class="sync-notice-content">
+      <span>🔒 <strong>Автономний режим:</strong> Ваші чернетки та версії зберігаються виключно в пам'яті цього браузера. Вони <em>не синхронізуються автоматично</em> між комп’ютером і телефоном. Для перенесення скористайтеся кнопкою «Резервна копія».</span>
+    </div>
+    <button id="btn-dismiss-banner" type="button" aria-label="Закрити сповіщення">Зрозуміло ✕</button>
+  </aside>
+
+  <!-- Верхня шапка додатка -->
+  <header class="app-header">
+    <div class="brand-section">
+      <span class="brand-logo" aria-hidden="true">📜</span>
+      <h1 class="brand-title">
+        Квестопис
+        <span class="brand-badge">Редактор квестів</span>
+      </h1>
+    </div>
+
+    <!-- Вибір поточної сцени / документа -->
+    <div class="scene-bar">
+      <label for="scene-select" class="scene-select-label">Сцена:</label>
+      <select id="scene-select" class="scene-dropdown" aria-label="Вибір поточної сцени або документа"></select>
+      <button id="btn-new-scene" class="btn btn-sm btn-primary" title="Створити нову сцену">＋ Додати</button>
+      <button id="btn-manage-scenes" class="btn btn-sm btn-secondary" title="Керувати сценами (перейменування, видалення)">Сцени...</button>
+    </div>
+
+    <!-- Панель дій -->
+    <div class="header-actions">
+      <button id="btn-undo" class="btn btn-secondary btn-sm" title="Скасувати останню дію (Ctrl+Z)" disabled>
+        ↩️ <span class="btn-label">Скасувати</span>
+      </button>
+      <button id="btn-redo" class="btn btn-secondary btn-sm" title="Повторити дію (Ctrl+Y)" disabled>
+        ↪️ <span class="btn-label">Повторити</span>
+      </button>
+      <button id="btn-history" class="btn btn-secondary btn-sm" title="Історія збережених версій цієї сцени">
+        ⏳ <span class="btn-label">Історія</span>
+      </button>
+      <button id="btn-backup" class="btn btn-secondary btn-sm" title="Експорт та імпорт резервної копії">
+        💾 <span class="btn-label">Резервна копія</span>
+      </button>
+      <button id="btn-samples" class="btn btn-secondary btn-sm" title="Завантажити зразки сюжетних квестів">
+        ✨ <span class="btn-label">Зразки</span>
+      </button>
+      <button id="btn-help" class="btn btn-secondary btn-sm" title="Легенда кольорів та довідка">
+        ❓ <span class="btn-label">Довідка</span>
+      </button>
+      <button id="btn-theme" class="btn btn-secondary btn-sm btn-icon-only" title="Змінити тему оформлення">
+        ☀️
+      </button>
+    </div>
+  </header>
+
+  <!-- Вкладки режимів (Особливо важливі для смартфонів) -->
+  <nav class="view-tabs" role="tablist" aria-label="Вкладки редактора">
+    <button class="tab-btn" data-tab="original" role="tab" aria-selected="false">
+      Оригінал <span id="tab-orig-count" class="tab-counter">0 слів</span>
+    </button>
+    <button class="tab-btn active" data-tab="edited" role="tab" aria-selected="true">
+      Моя редакція <span id="tab-edit-count" class="tab-counter">0 слів</span>
+    </button>
+    <button class="tab-btn" data-tab="comparison" role="tab" aria-selected="false">
+      🔍 Порівняння <span id="tab-diff-count" class="tab-counter">0</span>
+    </button>
+  </nav>
+
+  <!-- Панель налаштування розділювача (показується на широких екранах) -->
+  <div class="split-controls-bar">
+    <div class="split-presets">
+      <span>Ширина колонок:</span>
+      <button id="split-50" class="btn btn-sm btn-secondary" title="Рівні колонки 50/50">50% / 50%</button>
+      <button id="split-40" class="btn btn-sm btn-secondary" title="Оригінал 40%, Редакція 60%">40% / 60%</button>
+      <button id="split-60" class="btn btn-sm btn-secondary" title="Оригінал 60%, Редакція 40%">60% / 40%</button>
+    </div>
+    <div id="diff-stats-header" class="diff-stats-pill">
+      <span class="stat-identical">✓ Тексти ідентичні</span>
+    </div>
+  </div>
+
+  <!-- Головна робоча область -->
+  <main class="workspace-main">
+
+    <!-- Двоколонковий редактор (на десктопі поруч, на телефоні перемикається вкладками) -->
+    <div id="editor-panes-wrapper" class="editor-panes-wrapper">
+      
+      <!-- Ліва колонка: ОРИГІНАЛ -->
+      <section id="pane-original" class="pane pane-original" aria-labelledby="orig-title">
+        <div class="pane-header">
+          <div class="pane-title">
+            <span id="orig-title">📋 Оригінал</span>
+            <span id="orig-stats" class="pane-stats-badge">0 слів</span>
+          </div>
+          <div class="pane-tools">
+            <button id="btn-paste-orig" class="btn btn-sm btn-secondary" title="Вставити текст із буфера обміну">📋 Вставити</button>
+            <button id="btn-sync-orig-to-edit" class="btn btn-sm btn-secondary" title="Скопіювати поточний оригінал у поле редакції">➡️ В редакцію</button>
+            <button id="btn-clear-orig" class="btn btn-sm btn-secondary" title="Очистити поле оригіналу">✕</button>
+          </div>
+        </div>
+        <div class="editor-body">
+          <textarea 
+            id="txt-original" 
+            class="quest-textarea" 
+            placeholder="Вставте оригінальний сюжетний текст квесту сюди... Додаток автоматично створить копію у правій колонці для редакції." 
+            aria-label="Поле введення оригінального тексту квесту"
+            spellcheck="false"
+          ></textarea>
+        </div>
+      </section>
+
+      <!-- Перетягуваний розділювач (Splitter) -->
+      <div id="pane-splitter" class="pane-splitter" title="Потягніть для зміни пропорцій колонок (подвійний клік — 50/50)" role="separator" aria-orientation="vertical"></div>
+
+      <!-- Права колонка: МОЯ РЕДАКЦІЯ -->
+      <section id="pane-edited" class="pane pane-edited" aria-labelledby="edit-title">
+        <div class="pane-header">
+          <div class="pane-title">
+            <span id="edit-title">✍️ Моя редакція</span>
+            <span id="edit-stats" class="pane-stats-badge">0 слів</span>
+          </div>
+          <div class="pane-tools">
+            <button id="btn-copy-edit" class="btn btn-sm btn-primary" title="Скопіювати готову редакцію в буфер обміну">
+              📋 Скопіювати
+            </button>
+            <button id="btn-download-txt" class="btn btn-sm btn-secondary" title="Зберегти текст у файл .txt">
+              📥 .txt
+            </button>
+            <button id="btn-download-md" class="btn btn-sm btn-secondary" title="Зберегти текст у файл .md">
+              📥 .md
+            </button>
+          </div>
+        </div>
+        <div class="editor-body">
+          <textarea 
+            id="txt-edited" 
+            class="quest-textarea" 
+            placeholder="Тут з'явиться робоча копія тексту. Редагуйте слова, виправляйте фрази або доповнюйте діалоги. Відмінності від оригіналу підраховуються миттєво." 
+            aria-label="Поле редагування тексту квесту"
+            spellcheck="false"
+          ></textarea>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Окрема панель режиму «Порівняння» -->
+    <section id="comparison-view" class="comparison-container" style="display: none;" aria-label="Панель детального порівняння">
+      <div class="comparison-toolbar">
+        <div class="comparison-modes">
+          <span>Режим відображення:</span>
+          <button id="btn-compare-inline" class="btn btn-sm btn-primary">Об'єднаний текст</button>
+          <button id="btn-compare-side" class="btn btn-sm btn-secondary">Паралельний (2 колонки)</button>
+        </div>
+
+        <!-- Легенда кольорів та доступних позначок (Accessible Indicators) -->
+        <div class="diff-legend" aria-label="Легенда позначення змін">
+          <span class="legend-item">
+            <span class="legend-badge legend-ins">[+]</span>
+            <strong>Додано</strong> (зелене тло + підкреслення)
+          </span>
+          <span class="legend-item">
+            <span class="legend-badge legend-del">[-]</span>
+            <strong>Вилучено</strong> (червоне тло + перекреслення)
+          </span>
+        </div>
+      </div>
+
+      <div id="comparison-content" class="comparison-scroll-area">
+        <!-- Сюди динамічно генерується розмітка diff -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Нижня інформаційна панель -->
+  <footer class="app-footer">
+    <div class="footer-status">
+      <span id="save-indicator" class="save-indicator"></span>
+      <span id="status-text">Завантаження...</span>
+    </div>
+    <div class="footer-shortcuts">
+      <span>Підказка: <code>Ctrl+Z</code> — скасувати, <code>Ctrl+Y</code> — повторити</span>
+    </div>
+  </footer>
+
+</div>
+
+<!-- Контейнер для спливаючих сповіщень (Toasts) -->
+<div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+<!-- =========================================================================
+     МОДАЛЬНІ ДІАЛОГОВІ ВІКНА (Accessible Dialogs)
+     ========================================================================= -->
+
+<!-- Діалог 1: Попередження під час заміни оригіналу -->
+<dialog id="dialog-replace-warn">
+  <div class="modal-header">
+    <h2 class="modal-title">⚠️ Увага: Заміна оригіналу</h2>
+    <button type="button" class="btn btn-sm btn-secondary btn-close-dialog">✕</button>
+  </div>
+  <div class="modal-body">
+    <p id="warn-edit-status" style="margin-bottom: 14px; line-height: 1.5;"></p>
+    <p>Ви вставляєте новий текст у поле «Оригінал». Як ви бажаєте вчинити?</p>
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;">
+      <button id="btn-warn-new-scene" class="btn btn-primary" style="justify-content: flex-start;">
+        ➕ Створити нову сцену для нового тексту (Рекомендовано)
+      </button>
+      <button id="btn-warn-overwrite" class="btn btn-danger" style="justify-content: flex-start;">
+        ⚠️ Перезаписати поточну редакцію новим оригіналом (втратити поточні правки)
+      </button>
+      <button id="btn-warn-keep-edit" class="btn btn-secondary" style="justify-content: flex-start;">
+        🛡️ Залишити поточну редакцію без змін (оновити лише оригінал)
+      </button>
+      <button id="btn-warn-cancel" class="btn btn-secondary" style="justify-content: flex-start;">
+        ✕ Скасувати вставку
+      </button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Діалог 2: Менеджер сцен та документів -->
+<dialog id="dialog-scenes">
+  <div class="modal-header">
+    <h2 class="modal-title">🗂️ Документи та Сцени квесту</h2>
+    <button type="button" class="btn btn-sm btn-secondary btn-close-dialog">✕</button>
+  </div>
+  <div class="modal-body">
+    <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:14px;">
+      Для довгих історій створюйте окремі сцени. Кожна сцена зберігає свій оригінал, редакцію та власну історію версій.
+    </p>
+    <div id="scene-manager-list" class="scene-list"></div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary btn-close-dialog">Закрити</button>
+  </div>
+</dialog>
+
+<!-- Діалог 3: Історія версій (Version History) -->
+<dialog id="dialog-history">
+  <div class="modal-header">
+    <h2 class="modal-title">⏳ Історія версій сцени</h2>
+    <button type="button" class="btn btn-sm btn-secondary btn-close-dialog">✕</button>
+  </div>
+  <div class="modal-body">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+      <span style="font-size: 0.88rem; color: var(--text-secondary);">Точки збереження поточної сцени</span>
+      <button id="btn-create-snapshot" class="btn btn-sm btn-primary">📸 Створити знімок зараз</button>
+    </div>
+    <div id="history-list-container" class="history-list"></div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary btn-close-dialog">Закрити</button>
+  </div>
+</dialog>
+
+<!-- Діалог 4: Резервне копіювання та архітектура синхронізації -->
+<dialog id="dialog-backup">
+  <div class="modal-header">
+    <h2 class="modal-title">💾 Резервна копія та Синхронізація</h2>
+    <button type="button" class="btn btn-sm btn-secondary btn-close-dialog">✕</button>
+  </div>
+  <div class="modal-body" style="line-height: 1.6;">
+    <div style="background-color: var(--bg-card); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-bottom: 16px;">
+      <h3 style="font-size: 0.95rem; margin-bottom: 6px;">🔒 Автономне локальне сховище</h3>
+      <p style="font-size: 0.85rem; color: var(--text-secondary);">
+        Ваші квести зберігаються безпечно у внутрішній пам'яті вашого браузера (LocalStorage). Нічого не надсилається на зовнішні сервери.
+      </p>
+    </div>
+
+    <div style="margin-bottom: 18px;">
+      <h4 style="font-size: 0.9rem; margin-bottom: 8px;">Експорт усіх сцен:</h4>
+      <button id="btn-export-backup-json" class="btn btn-primary" style="width: 100%;">
+        📥 Завантажити повний файл резервної копії (.json)
+      </button>
+    </div>
+
+    <div style="margin-bottom: 18px;">
+      <h4 style="font-size: 0.9rem; margin-bottom: 8px;">Відновлення з файлу копії:</h4>
+      <input type="file" id="file-import-backup" accept=".json" style="display: block; width: 100%; font-size: 0.85rem;">
+    </div>
+
+    <div style="background-color: var(--bg-surface-elevated); padding: 12px; border-radius: var(--radius-md); font-size: 0.82rem; color: var(--text-muted);">
+      <strong>Архітектурна замітка:</strong> У модулі <code>app.js</code> реалізовано абстракцію <code>window.QuestSyncAdapter</code>. Якщо знадобиться підключити приватну синхронізацію через локальну мережу, WebRTC або шифрований сервер (E2EE), її можна інтегрувати через цей адаптер без зміни інтерфейсу редактора.
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary btn-close-dialog">Закрити</button>
+  </div>
+</dialog>
+
+<!-- Діалог 5: Зразки квестів -->
+<dialog id="dialog-samples">
+  <div class="modal-header">
+    <h2 class="modal-title">✨ Зразки сюжетних квестів</h2>
+    <button type="button" class="btn btn-sm btn-secondary btn-close-dialog">✕</button>
+  </div>
+  <div class="modal-body">
+    <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 14px;">
+      Виберіть один із готових зразків сюжетного тексту, щоб протестувати підсвітку змін, заміну слів, порівняння та експорт.
+    </p>
+    <div id="samples-list-container" style="display: flex; flex-direction: column; gap: 12px;"></div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary btn-close-dialog">Закрити</button>
+  </div>
+</dialog>
+
+<!-- Діалог 6: Легенда кольорів та довідка -->
+<dialog id="dialog-help">
+  <div class="modal-header">
+    <h2 class="modal-title">❓ Легенда та посібник користувача</h2>
+    <button type="button" class="btn btn-sm btn-secondary btn-close-dialog">✕</button>
+  </div>
+  <div class="modal-body" style="line-height: 1.6; font-size: 0.9rem;">
+    <h3 style="font-size: 1rem; margin-bottom: 8px;">🔍 Як працює підсвітка на рівні слів:</h3>
+    <p style="margin-bottom: 12px;">
+      Алгоритм розбиває текст на окремі українські слова (з урахуванням апострофів, дефісів та розділових знаків). Завдяки цьому зміна лише одного слова в абзаці підсвічує тільки це конкретне слово, а не цілий абзац!
+    </p>
+
+    <h3 style="font-size: 1rem; margin-bottom: 8px;">🎨 Позначення змін (доступне для всіх):</h3>
+    <ul style="padding-left: 20px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px;">
+      <li>
+        <span class="legend-badge legend-ins">[+]</span>
+        <strong>Доданий текст:</strong> зелений колір, суцільна нижня лінія та текстова позначка <code>[+]</code> (семантичний тег <code>&lt;ins&gt;</code>).
+      </li>
+      <li>
+        <span class="legend-badge legend-del">[-]</span>
+        <strong>Вилучений текст:</strong> червоний колір, перекреслення та текстова позначка <code>[-]</code> (семантичний тег <code>&lt;del&gt;</code>).
+      </li>
+    </ul>
+
+    <h3 style="font-size: 1rem; margin-bottom: 8px;">📱 Робота на телефоні:</h3>
+    <p style="margin-bottom: 12px;">
+      На мобільних екранах редактор автоматично переходить у режим вкладок <strong>«Оригінал»</strong>, <strong>«Моя редакція»</strong> та <strong>«Порівняння»</strong>. Тексти не виходять за межі екрана, відсутнє небажане горизонтальне прокручування.
+    </p>
+
+    <h3 style="font-size: 1rem; margin-bottom: 8px;">⌨️ Гарячі клавіші:</h3>
+    <ul style="padding-left: 20px;">
+      <li><code>Ctrl+Z</code> — Скасувати останню правку</li>
+      <li><code>Ctrl+Y</code> або <code>Ctrl+Shift+Z</code> — Повторити дію</li>
+    </ul>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary btn-close-dialog">Зрозуміло</button>
+  </div>
+</dialog>
+
+<!-- Підключення скриптів -->
+<script src="diff.js"></script>
+<script src="samples.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
