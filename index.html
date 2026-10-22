@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="uk" style="background:#0e071b;color:#f7f4ff">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#120824" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" href="./assets/icon-192.png" />
+    <link rel="apple-touch-icon" href="./assets/icon-192.png" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+      (function() {
+        var tg = window.Telegram && window.Telegram.WebApp;
+        if (tg) {
+          try {
+            tg.ready();
+            tg.expand();
+            if (tg.requestFullscreen) tg.requestFullscreen();
+            tg.setHeaderColor('#120824');
+            tg.setBackgroundColor('#0e061c');
+            tg.enableClosingConfirmation();
+            var setAppH = function() {
+              var h = tg.viewportHeight || window.innerHeight;
+              document.documentElement.style.setProperty('--app-height', h + 'px');
+            };
+            setAppH();
+            tg.onEvent('viewportChanged', setAppH);
+            window.addEventListener('resize', setAppH);
+          } catch(e) {}
+        }
+      })();
+    </script>
+    <title>Скажені Єноти: Нічний Дожор</title>
+    <script defer src="./assets/app.js"></script>
+      <link rel="stylesheet" href="./styles.css?v=1792703621463" />
+  </head>
+  <body style="margin:0;background:#0e071b;color:#f7f4ff">
+    <div id="root"></div>
+    <script>
+      if (location.protocol === 'file:' || (location.port !== '5173' && !document.querySelector('script[src*="assets/app.js"]'))) {
+        var s = document.createElement('script');
+        s.src = './dist/assets/app.js';
+        document.body.appendChild(s);
+      }
+    </script>
+  </body>
+</html>

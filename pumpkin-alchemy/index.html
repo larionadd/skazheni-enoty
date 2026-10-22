@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#160d24" />
+  <title>Гарбузова Алхімія — Геловінська Крамниця</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="ambient-bg" aria-hidden="true">
+    <div class="ambient-glow ambient-glow--orange"></div>
+    <div class="ambient-glow ambient-glow--purple"></div>
+    <div class="ambient-glow ambient-glow--teal"></div>
+  </div>
+
+  <main class="game-shell" id="gameShell">
+    <!-- Main Menu Screen (Title Screen) -->
+    <section class="main-menu-screen" id="mainMenuScreen" aria-label="Головне Меню">
+      <div class="main-menu-bg" aria-hidden="true"></div>
+      <div class="main-menu-content">
+        <div class="main-menu-header">
+          <div class="main-menu-logo-wrap">
+            <img class="main-menu-logo" src="assets/sprites/game_logo.webp" alt="Pumpkin Alchemy" width="200" height="200" />
+          </div>
+          <h1 class="main-menu-title" id="mmTitle">PUMPKIN ALCHEMY</h1>
+          <p class="main-menu-subtitle" id="mmSubtitle">Затишна Геловінська Алхімія</p>
+          <div class="main-menu-saved-badge" id="mmSavedBadge">🌙 Ніч 1</div>
+        </div>
+
+        <div class="main-menu-actions">
+          <button type="button" class="primary-btn mm-btn-play" id="btnPlayMain">
+            <span id="lblPlayMain">🌙 Почати Ніч 1</span>
+          </button>
+          <button type="button" class="secondary-btn mm-btn-restart" id="btnPlayNewGame" style="display: none;">
+            <span id="lblPlayNewGame">🔄 Почати спочатку (з 1-ї ночі)</span>
+          </button>
+          <button type="button" class="secondary-btn mm-btn-settings" id="btnOpenSettings">
+            <span id="lblOpenSettings">⚙️ Налаштування</span>
+          </button>
+          <button type="button" class="secondary-btn mm-btn-grimoire" id="btnOpenGrimoireMenu">
+            <span id="lblOpenGrimoire">📖 Гримуар</span>
+          </button>
+        </div>
+
+        <div class="main-menu-footer">
+          <button type="button" class="mm-lang-pill" id="btnQuickLangToggle" aria-label="Змінити мову / Switch language">
+            <span id="lblQuickLang">🇺🇦 УКР</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Top Wooden Signboard + Fixed-Height Story Guest Order Card -->
+    <header class="wood-header">
+      <div class="rope rope--left" aria-hidden="true"></div>
+      <div class="rope rope--right" aria-hidden="true"></div>
+
+      <div class="header-top-row">
+        <div class="title-block">
+          <div class="title-line">
+            <h1 class="game-title">PUMPKIN ALCHEMY</h1>
+            <span class="level-badge" id="levelBadge">🌙 НІЧ 1</span>
+          </div>
+          <div class="progress-pills">
+            <span class="prog-pill" id="guestProgressPill">📜 Ціль: 0/2</span>
+            <span class="prog-pill prog-pill--coins" id="coinsPill">🪙 <strong id="coinsValue">10</strong></span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button type="button" class="icon-btn" id="btnHome" aria-label="Головне меню" title="Головне меню">
+            🏠
+          </button>
+          <button type="button" class="icon-btn" id="btnSettingsHeader" aria-label="Налаштування" title="Налаштування">
+            ⚙️
+          </button>
+          <button type="button" class="icon-btn" id="btnSound" aria-label="Увімкнути або вимкнути звук">
+            🔊
+          </button>
+          <button type="button" class="icon-btn" id="btnRestart" aria-label="Почати спочатку">
+            🔄
+          </button>
+        </div>
+      </div>
+
+      <!-- Cozy Fixed-Height Story Guest Card -->
+      <section class="guest-card" id="guestCard" aria-live="polite">
+        <div class="guest-top-row">
+          <div class="guest-avatar-wrap">
+            <canvas id="guestAvatarCanvas" width="60" height="60"></canvas>
+            <span class="guest-step-badge" id="guestStepBadge">1/2</span>
+          </div>
+
+          <div class="guest-info">
+            <div class="guest-name-row">
+              <strong class="guest-name" id="guestName">Джаспер, Привид-листоноша</strong>
+              <span class="guest-reward-tag" id="guestRewardTag">+10 🪙</span>
+            </div>
+            <p class="guest-dialogue" id="guestDialogue">
+              «У лісі такий густий туман! Звариш мені теплий відвар для дороги?»
+            </p>
+          </div>
+        </div>
+
+        <div class="recipe-bar">
+          <div class="recipe-slots" id="recipeSlots"></div>
+          <button type="button" class="serve-btn" id="btnServe" disabled aria-label="Подати готові інгредієнти гостю">
+            🍵 Подати!
+          </button>
+        </div>
+      </section>
+    </header>
+
+    <!-- Interactive Cauldron Stage (Night) & Sunny Workshop Shop (Day) -->
+    <section class="stage-wrap" id="stageWrap" aria-label="Ігрове поле з магічним казаном та денною крамницею">
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- Animated Dawn / Dusk Transition Banner -->
+      <div class="day-night-banner" id="dayNightBanner" hidden aria-live="polite">
+        <span class="day-night-banner__icon" id="dayNightBannerIcon">☀️</span>
+        <div class="day-night-banner__text">
+          <strong id="dayNightBannerTitle">Світанок Дня 1!</strong>
+          <span id="dayNightBannerSub">Настає ранок — замість казана відкривається крамниця</span>
+        </div>
+      </div>
+
+      <!-- Daytime Alchemy Shop (Opens right inside the stage in place of the cauldron when Day breaks!) -->
+      <section class="day-shop-stage" id="dayShopStage" hidden aria-labelledby="dayShopTitle">
+        <header class="day-shop-header">
+          <div class="day-shop-title-row">
+            <span class="day-shop-sun" id="dayShopBadge" aria-hidden="true">☀️</span>
+            <div class="day-shop-title-wrap">
+              <h2 id="dayShopTitle">День 1 — Денна Крамниця</h2>
+              <p id="dayShopSubtitle">Збережено 0 сек → +0 🪙 монет!</p>
+            </div>
+            <strong class="day-shop-wallet" id="shopCoinsValue">🪙 25</strong>
+          </div>
+        </header>
+
+        <div class="shop-items-list day-shop-list">
+          <div class="shop-row">
+            <img class="shop-skill-thumb" id="shopThumbStir" src="assets/sprites/skill_stir.webp" alt="" width="38" height="38" />
+            <div class="shop-row-info">
+              <strong id="titleBuyStir">Велика Мішалка (+1 заряд)</strong>
+              <span id="descBuyStir">Дозволяє 1 раз перемішати казан ложкою</span>
+            </div>
+            <button type="button" class="shop-buy-btn" id="btnBuyStir">🪙 25</button>
+          </div>
+
+          <div class="shop-row">
+            <img class="shop-skill-thumb" id="shopThumbBat" src="assets/sprites/skill_bat.webp" alt="" width="38" height="38" />
+            <div class="shop-row-info">
+              <strong id="titleBuyBat">Кажан-Помічник (+1 заряд)</strong>
+              <span id="descBuyBat">Забирає з казана 1 найменший предмет</span>
+            </div>
+            <button type="button" class="shop-buy-btn" id="btnBuyBat">🪙 30</button>
+          </div>
+
+          <div class="shop-row">
+            <div class="shop-row-info">
+              <strong id="titleBuyTime">⏳ Пісочний Годинник (+30 сек)</strong>
+              <span id="descBuyTime">Додає +30 секунд на наступну ніч</span>
+            </div>
+            <button type="button" class="shop-buy-btn" id="btnBuyTime">🪙 35</button>
+          </div>
+
+          <div class="shop-row">
+            <div class="shop-row-info">
+              <strong id="titleBuyNeeded">🎯 Інгредієнт Замовлення на старт</strong>
+              <span id="descBuyNeeded">На початку ночі дає потрібний гостю предмет</span>
+            </div>
+            <button type="button" class="shop-buy-btn" id="btnBuyNeeded">🪙 45</button>
+          </div>
+
+          <div class="shop-row">
+            <div class="shop-row-info">
+              <strong id="titleBuyGreed">🍀 Золотий Черпак (Бонус монет)</strong>
+              <span id="descBuyGreed">Більше монет за замовлення (до 15🪙) і збережений час</span>
+            </div>
+            <button type="button" class="shop-buy-btn" id="btnBuyGreed">🪙 60</button>
+          </div>
+        </div>
+
+        <footer class="day-shop-footer">
+          <button type="button" class="primary-btn day-shop-continue-btn" id="btnContinueToNight">
+            🌙 Продовжити — Настає Ніч 2!
+          </button>
+        </footer>
+      </section>
+
+      <!-- Stage Countdown Timer Plaque (Top-Left of Stage) -->
+      <div class="stage-timer-card" id="timerPill" title="Час до світанку (2 хвилини). Збережені секунди конвертуються в монети!">
+        <div class="stage-timer-header">
+          <span class="stage-timer-icon" aria-hidden="true">⏳</span>
+          <span class="stage-timer-label" id="lblUntilDawn">ДО СВІТАНКУ</span>
+        </div>
+        <strong class="stage-timer-digits" id="timerValue">02:00</strong>
+        <div class="stage-timer-bar" aria-hidden="true">
+          <div class="stage-timer-bar__fill" id="timerBarFill"></div>
+        </div>
+      </div>
+
+      <!-- Next Item Preview Bubble + Weight Category Badge -->
+      <div class="next-preview" id="nextPreview" title="Наступний інгредієнт та його вагова категорія">
+        <span class="next-label" id="lblNextItem">ДАЛІ</span>
+        <canvas id="nextCanvas" width="52" height="52"></canvas>
+        <span class="next-weight" id="nextWeightBadge">🪶 Легкий</span>
+      </div>
+
+      <!-- Combo Toast -->
+      <div class="combo-toast" id="comboToast" aria-hidden="true">КОМБО ×2!</div>
+    </section>
+
+    <!-- Bottom Wooden Shelf: Stirring Ladle, Bat Helper & Grimoire -->
+    <footer class="potion-shelf potion-shelf--three" aria-label="Інструменти алхіміка та Гримуар">
+      <button type="button" class="potion-btn potion-btn--stir" id="btnPotionStir" title="Велика Мішалка: візьми ложку та один раз проведи нею всередині казана, щоб перемішати інгредієнти! (Клавіша 1)">
+        <span class="potion-orb">
+          <img class="potion-skill-img" id="imgSkillStir" src="assets/sprites/skill_stir.webp" alt="" width="54" height="54" />
+          <span class="potion-price" id="countStir">×2</span>
+        </span>
+        <span class="potion-name" id="labelStir">Мішалка</span>
+      </button>
+
+      <button type="button" class="potion-btn potion-btn--bat" id="btnPotionBat" title="Кажан-Помічник: забирає з казана 1 найменший предмет! Купується у Денній Крамниці (Клавіша 2)">
+        <span class="potion-orb">
+          <img class="potion-skill-img" id="imgSkillBat" src="assets/sprites/skill_bat.webp" alt="" width="54" height="54" />
+          <span class="potion-price" id="countBat">×1</span>
+        </span>
+        <span class="potion-name" id="labelBat">Кажанчик</span>
+      </button>
+
+      <button type="button" class="potion-btn potion-btn--grimoire" id="btnGrimoire" title="Гримуар: переглянути 20 інгредієнтів, 4 категорії ваги та поєднання Духів">
+        <span class="potion-orb potion-orb--book">
+          <img class="potion-skill-img" id="imgSkillGrimoire" src="assets/sprites/skill_grimoire.webp" alt="" width="54" height="54" />
+        </span>
+        <span class="potion-name" id="labelGrimoire">Гримуар</span>
+      </button>
+    </footer>
+  </main>
+
+  <!-- Alchemist's Grimoire Modal (Ingredients, 4 Weight Classes & Spirit Evolution) -->
+  <dialog id="grimoireDialog" class="cozy-dialog" closedby="any" aria-labelledby="grimoireTitle">
+    <div class="dialog-card">
+      <header class="dialog-header">
+        <h2 id="grimoireTitle">📖 Гримуар Ваги та Духів</h2>
+        <form method="dialog">
+          <button type="submit" class="dialog-close" aria-label="Закрити">✕</button>
+        </form>
+      </header>
+
+      <div class="dialog-body">
+        <h3 class="section-heading" id="grimoireSpiritHeading">👻 Таємниця Поєднання Духів</h3>
+        <div class="spirit-evo-box" id="spiritEvoBox"></div>
+
+        <h3 class="section-heading" id="grimoireWeightHeading">⚖️ 4 Категорії Ваги Інгредієнтів</h3>
+        <div class="weight-legend">
+          <span class="weight-pill weight-pill--light" id="pillLight">🪶 Легкі: падають повільно й плавно</span>
+          <span class="weight-pill weight-pill--medium" id="pillMedium">⚖️ Середні: звичайна вага</span>
+          <span class="weight-pill weight-pill--heavy" id="pillHeavy">🍎 Важкі: падають швидко, розштовхують легкі</span>
+          <span class="weight-pill weight-pill--very_heavy" id="pillVeryHeavy">🪨 Надважкі: пробивають шлях до самого дна!</span>
+        </div>
+
+        <h3 class="section-heading" id="grimoireSectionHeading">🎃 Відкриті Інгредієнти</h3>
+        <div class="evolution-grid" id="evolutionGrid"></div>
+      </div>
+
+      <footer class="dialog-footer">
+        <form method="dialog">
+          <button type="submit" class="primary-btn" id="lblGrimoireClose">До казана! ✨</button>
+        </form>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- Defeat / Retry Dialog (when timer expires or cauldron overflows) -->
+  <dialog id="gameOverDialog" class="cozy-dialog" closedby="any" aria-labelledby="gameOverTitle">
+    <div class="dialog-card">
+      <header class="dialog-header">
+        <h2 id="gameOverTitle">🌙 Ніч Завершилась!</h2>
+      </header>
+
+      <div class="dialog-body">
+        <div class="summary-top-row">
+          <div class="summary-badge" id="summaryBadge">🎃</div>
+          <div class="summary-top-text">
+            <p class="summary-rank" id="summaryRank">Спробуй ще раз!</p>
+            <p class="summary-story" id="summaryStory">
+              Подавай готові інгредієнти гостям, щоб дочекатися світанку та відкрити Денну Крамницю!
+            </p>
+          </div>
+        </div>
+
+        <div class="summary-stats">
+          <div class="stat-box">
+            <span id="lblSummaryOrders">Замовлення</span>
+            <strong id="finalGuests">0/2</strong>
+          </div>
+          <div class="stat-box">
+            <span id="lblSummaryBonus">Бонус часу</span>
+            <strong id="finalSpirits">0с → +0 🪙</strong>
+          </div>
+          <div class="stat-box">
+            <span id="lblSummaryWallet">Гаманець</span>
+            <strong id="finalScore">🪙 10</strong>
+          </div>
+        </div>
+      </div>
+
+      <footer class="dialog-footer">
+        <button type="button" class="primary-btn" id="btnNextOrRetry">🔄 Спробувати Цю Ніч Знову</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- First-Launch Language Selection Modal -->
+  <dialog id="firstLangDialog" class="cozy-dialog lang-dialog" aria-labelledby="firstLangTitle">
+    <div class="dialog-card lang-card">
+      <header class="dialog-header">
+        <h2 id="firstLangTitle">✨ Оберіть Мову / Select Language</h2>
+      </header>
+      <div class="dialog-body lang-dialog-body">
+        <p class="lang-dialog-desc" id="firstLangDesc">
+          Оберіть мову для чарівного казана:<br>
+          <span style="opacity: 0.85;">Choose your preferred language:</span>
+        </p>
+        <div class="lang-options">
+          <button type="button" class="lang-select-btn" data-lang="uk" id="btnPickLangUk">
+            <span class="lang-flag">🇺🇦</span>
+            <div class="lang-btn-text">
+              <strong class="lang-name">Українська</strong>
+              <span class="lang-sub">Грати українською мовою</span>
+            </div>
+          </button>
+          <button type="button" class="lang-select-btn" data-lang="en" id="btnPickLangEn">
+            <span class="lang-flag">🇬🇧</span>
+            <div class="lang-btn-text">
+              <strong class="lang-name">English</strong>
+              <span class="lang-sub">Play game in English</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Settings Dialog (Language, Audio, Progress Resume & Reset) -->
+  <dialog id="settingsDialog" class="cozy-dialog" closedby="any" aria-labelledby="settingsTitle">
+    <div class="dialog-card settings-card">
+      <header class="dialog-header">
+        <h2 id="settingsTitle">⚙️ Налаштування</h2>
+        <form method="dialog">
+          <button type="submit" class="dialog-close" aria-label="Закрити">✕</button>
+        </form>
+      </header>
+
+      <div class="dialog-body settings-body">
+        <section class="settings-group">
+          <h3 class="settings-group-title" id="lblSettingLang">🌐 Мова гри / Language</h3>
+          <div class="settings-lang-switch">
+            <button type="button" class="settings-lang-btn" id="btnSettingLangUk" data-lang="uk">
+              🇺🇦 Українська
+            </button>
+            <button type="button" class="settings-lang-btn" id="btnSettingLangEn" data-lang="en">
+              🇬🇧 English
+            </button>
+          </div>
+        </section>
+
+        <section class="settings-group">
+          <h3 class="settings-group-title" id="lblSettingAudio">🔊 Звук та Атмосфера</h3>
+          <div class="settings-row">
+            <span id="lblSettingSoundEffects">Ефекти та Музика</span>
+            <button type="button" class="toggle-btn" id="btnSettingSoundToggle">🔊 Увімкнено</button>
+          </div>
+        </section>
+
+        <section class="settings-group">
+          <h3 class="settings-group-title" id="lblSettingProgress">💾 Збереження та Прогрес</h3>
+          <div class="settings-progress-card">
+            <span id="settingsCurrentNightInfo">Поточний прогрес: Ніч 1</span>
+            <span id="settingsCurrentCoinsInfo">🪙 10 монет | Рекорд: 0</span>
+          </div>
+          <button type="button" class="danger-btn" id="btnResetProgress">
+            <span id="lblResetProgress">⚠️ Скинути збереження (з 1-ї ночі)</span>
+          </button>
+        </section>
+      </div>
+
+      <footer class="dialog-footer">
+        <form method="dialog">
+          <button type="submit" class="primary-btn" id="lblCloseSettings">Готово ✨</button>
+        </form>
+      </footer>
+    </div>
+  </dialog>
+
+  <script src="i18n.js"></script>
+  <script src="sprites-data.js"></script>
+  <script src="audio.js"></script>
+  <script src="renderer.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
