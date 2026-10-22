@@ -163,6 +163,14 @@
           <button id="btn-compare-side" class="btn btn-sm btn-secondary">Паралельний (2 колонки)</button>
         </div>
 
+        <!-- Індикатор відсотка схожості -->
+        <div id="comparison-similarity-indicator" class="similarity-indicator" title="Рівень схожості між оригіналом та поточною редакцією">
+          <span>Схожість: <strong id="comp-sim-value">100%</strong></span>
+          <span class="similarity-progress-bar" aria-hidden="true">
+            <span id="comp-sim-progress" class="similarity-progress-fill" style="width: 100%; background-color: #3fb950;"></span>
+          </span>
+        </div>
+
         <!-- Легенда кольорів та доступних позначок (Accessible Indicators) -->
         <div class="diff-legend" aria-label="Легенда позначення змін">
           <span class="legend-item">

@@ -207,6 +207,9 @@
     let charsDeleted = 0;
     let changeClusters = 0;
 
+    let wordsEqual = 0;
+    let charsEqual = 0;
+
     for (let i = 0; i < ops.length; i++) {
       const op = ops[i];
       const opTokens = tokenize(op.value);
@@ -220,21 +223,46 @@
         wordsDeleted += wordCount;
         charsDeleted += op.value.length;
         changeClusters++;
+      } else if (op.type === 'equal') {
+        wordsEqual += wordCount;
+        charsEqual += op.value.length;
       }
     }
 
     const isIdentical = originalText === editedText;
 
+    // Розрахунок відсотка схожості (Similarity Percentage)
+    let similarity = 100;
+    if (isIdentical) {
+      similarity = 100;
+    } else if (!originalText.trim() && !editedText.trim()) {
+      similarity = 100;
+    } else if (!originalText.trim() || !editedText.trim()) {
+      similarity = 0;
+    } else {
+      const maxWords = Math.max(origWords, editWords);
+      if (maxWords > 0) {
+        similarity = Math.round((wordsEqual / maxWords) * 100);
+      } else {
+        const maxChars = Math.max(originalText.length, editedText.length);
+        similarity = maxChars > 0 ? Math.round((charsEqual / maxChars) * 100) : 100;
+      }
+      similarity = Math.max(0, Math.min(100, similarity));
+    }
+
     return {
       originalWords: origWords,
       editedWords: editWords,
+      wordsEqual,
       wordsAdded,
       wordsDeleted,
+      charsEqual,
       charsAdded,
       charsDeleted,
       originalChars: originalText.length,
       editedChars: editedText.length,
       changeClusters,
+      similarity,
       isIdentical
     };
   }

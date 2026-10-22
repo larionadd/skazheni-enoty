@@ -162,6 +162,8 @@
     dom.btnCompareInline = document.getElementById('btn-compare-inline');
     dom.btnCompareSide = document.getElementById('btn-compare-side');
     dom.comparisonContent = document.getElementById('comparison-content');
+    dom.compSimValue = document.getElementById('comp-sim-value');
+    dom.compSimProgress = document.getElementById('comp-sim-progress');
 
     dom.saveIndicator = document.getElementById('save-indicator');
     dom.statusText = document.getElementById('status-text');
@@ -347,25 +349,49 @@
       dom.editStats.textContent = `${stats.editedWords} слів, ${stats.editedChars} симв.`;
     }
 
-    // Підсумок різниці
+    // Підсумок різниці та процент схожості
+    const simPercent = stats.similarity !== undefined ? stats.similarity : 100;
+    let simClass = 'sim-high';
+    let simColor = '#3fb950';
+    if (simPercent < 60) {
+      simClass = 'sim-low';
+      simColor = '#f85149';
+    } else if (simPercent < 85) {
+      simClass = 'sim-mid';
+      simColor = '#f1c40f';
+    }
+
     if (dom.diffStatsHeader) {
       if (stats.isIdentical) {
-        dom.diffStatsHeader.innerHTML = `<span class="stat-identical">✓ Тексти ідентичні (без правок)</span>`;
+        dom.diffStatsHeader.innerHTML = `
+          <span class="stat-sim-badge sim-high" title="Процент схожості між оригіналом та редакцією">Схожість: 100%</span>
+          <span class="stat-identical">✓ Тексти ідентичні (без правок)</span>
+        `;
         if (dom.tabDiffBadge) {
-          dom.tabDiffBadge.textContent = '0';
+          dom.tabDiffBadge.textContent = '100%';
           dom.tabDiffBadge.classList.remove('diff-badge-count');
         }
       } else {
         dom.diffStatsHeader.innerHTML = `
+          <span class="stat-sim-badge ${simClass}" title="Процент схожості між оригіналом та редакцією">Схожість: ${simPercent}%</span>
           <span class="stat-add" title="Додано слів">+${stats.wordsAdded}</span>
           <span class="stat-del" title="Вилучено слів">-${stats.wordsDeleted}</span>
           <span style="color: var(--text-muted);">(${stats.changeClusters} місць змін)</span>
         `;
         if (dom.tabDiffBadge) {
-          dom.tabDiffBadge.textContent = `+${stats.wordsAdded}/-${stats.wordsDeleted}`;
+          dom.tabDiffBadge.textContent = `${simPercent}% · +${stats.wordsAdded}/-${stats.wordsDeleted}`;
           dom.tabDiffBadge.classList.add('diff-badge-count');
         }
       }
+    }
+
+    // Оновлення окремого індикатора у панелі порівняння
+    if (dom.compSimValue) {
+      dom.compSimValue.textContent = `${simPercent}%`;
+    }
+    if (dom.compSimProgress) {
+      dom.compSimProgress.style.width = `${simPercent}%`;
+      dom.compSimProgress.style.backgroundColor = simColor;
     }
 
     // Відображення режиму порівняння
@@ -604,7 +630,8 @@
       edited: scene.edited,
       wordsAdded: diff.stats.wordsAdded,
       wordsDeleted: diff.stats.wordsDeleted,
-      totalWords: diff.stats.editedWords
+      totalWords: diff.stats.editedWords,
+      similarity: diff.stats.similarity !== undefined ? diff.stats.similarity : 100
     };
 
     scene.history.unshift(snapshot);
@@ -631,12 +658,13 @@
         const item = document.createElement('div');
         item.className = 'history-item';
         const dateStr = new Date(snap.timestamp).toLocaleString();
+        const simVal = snap.similarity !== undefined ? snap.similarity : 100;
 
         item.innerHTML = `
           <div class="scene-info">
             <div class="scene-name">${QuestDiff.escapeHtml(snap.note)} <span style="font-weight:normal;color:var(--text-muted);font-size:0.8rem">#${scene.history.length - idx}</span></div>
             <div class="scene-meta">
-              ${dateStr} | Слів: ${snap.totalWords} | <span style="color:var(--diff-ins-text)">+${snap.wordsAdded}</span> / <span style="color:var(--diff-del-text)">-${snap.wordsDeleted}</span>
+              ${dateStr} | Слів: ${snap.totalWords} | Схожість: <strong>${simVal}%</strong> | <span style="color:var(--diff-ins-text)">+${snap.wordsAdded}</span> / <span style="color:var(--diff-del-text)">-${snap.wordsDeleted}</span>
             </div>
           </div>
           <div class="scene-actions">

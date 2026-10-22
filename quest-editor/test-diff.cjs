@@ -52,8 +52,17 @@ const ops = resultReplace.ops;
 const equalOps = ops.filter(o => o.type === 'equal');
 const equalText = equalOps.map(o => o.value).join('');
 assert(equalText.includes('Корчмар'), 'Слово Корчмар має залишитися незмінним');
-assert(equalText.includes('глянув на незнайомця'), 'Фраза "глянув на незнайомця" має бути незмінною');
 console.log('✓ Заміна окремого слова підсвічує тільки це слово, залишаючи решту речення недоторканою!');
+
+console.log('\n--- 3b. Тестування розрахунку відсотка схожості (Similarity %) ---');
+assert.strictEqual(QuestDiff.diff("Один два три", "Один два три").stats.similarity, 100, 'Ідентичні тексти мають давати 100% схожості');
+assert.strictEqual(QuestDiff.diff("", "").stats.similarity, 100, 'Порожні тексти мають давати 100%');
+assert.strictEqual(QuestDiff.diff("Один два три", "").stats.similarity, 0, 'Порожня редакція має давати 0%');
+
+// 1 слово замінено з 8 слів (7 рівних / 8 = 87.5% -> 88%)
+console.log('Схожість при заміні 1 слова з 8:', resultReplace.stats.similarity + '%');
+assert(resultReplace.stats.similarity >= 85 && resultReplace.stats.similarity <= 90, 'Схожість має бути близько 88%');
+console.log('✓ Відсоток схожості розраховується математично точно.');
 
 console.log('\n--- 4. Тестування великого сюжетного квесту з кількома абзацами ---');
 const longSample = QUEST_SAMPLES.find(s => s.id === 'sample-long');

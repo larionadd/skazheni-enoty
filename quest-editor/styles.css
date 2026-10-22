@@ -410,6 +410,65 @@ html, body {
   color: var(--text-muted);
 }
 
+/* Similarity Badge & Indicator */
+.stat-sim-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  user-select: none;
+}
+
+.stat-sim-badge.sim-high {
+  background-color: rgba(46, 160, 67, 0.22);
+  border-color: #3fb950;
+  color: var(--diff-ins-text);
+}
+
+.stat-sim-badge.sim-mid {
+  background-color: rgba(210, 153, 34, 0.22);
+  border-color: #d29922;
+  color: #f1c40f;
+}
+
+.stat-sim-badge.sim-low {
+  background-color: rgba(248, 81, 73, 0.22);
+  border-color: #f85149;
+  color: var(--diff-del-text);
+}
+
+.similarity-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+}
+
+.similarity-progress-bar {
+  width: 70px;
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.similarity-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
 /* Main Workspace Area */
 .workspace-main {
   display: flex;
