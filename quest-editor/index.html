@@ -100,6 +100,7 @@
         <div class="pane-header">
           <div class="pane-title">
             <span id="orig-title">📋 Оригінал</span>
+            <span class="live-status-pill" title="Підсвітка вилученого або зміненого тексту"><span class="dot-del">●</span> Вилучене</span>
             <span id="orig-stats" class="pane-stats-badge">0 слів</span>
           </div>
           <div class="pane-tools">
@@ -109,6 +110,7 @@
           </div>
         </div>
         <div class="editor-body">
+          <div id="backdrop-original" class="editor-backdrop" aria-hidden="true"></div>
           <textarea 
             id="txt-original" 
             class="quest-textarea" 
@@ -127,6 +129,7 @@
         <div class="pane-header">
           <div class="pane-title">
             <span id="edit-title">✍️ Моя редакція</span>
+            <span class="live-status-pill" title="Підсвітка змін у реальному часі під час друку"><span class="dot-ins">●</span> Додане <span class="dot-mod">●</span> Змінене</span>
             <span id="edit-stats" class="pane-stats-badge">0 слів</span>
           </div>
           <div class="pane-tools">
@@ -142,6 +145,7 @@
           </div>
         </div>
         <div class="editor-body">
+          <div id="backdrop-edited" class="editor-backdrop" aria-hidden="true"></div>
           <textarea 
             id="txt-edited" 
             class="quest-textarea" 

@@ -85,6 +85,26 @@ assert(sideBySide.leftHtml.includes('diff-del'), 'Ліва колонка має
 assert(sideBySide.rightHtml.includes('diff-ins'), 'Права колонка має містити додавання');
 console.log('✓ Великий текст обробляється миттєво та формує обидва режими порівняння.');
 
+console.log('\n--- 5. Тестування живої підсвітки під час редагування (Live Backdrop) ---');
+const liveEditSample = QuestDiff.diff("Корчмар підозріло глянув на незнайомця", "Корчмар пильно глянув на незнайомця і мовив нове слово");
+const liveHtml = liveEditSample.renderLiveEdited();
+console.log('Live Edited Backdrop HTML:', liveHtml);
+
+// Перевіряємо, що додане/змінене підсвічено марками
+assert(liveHtml.includes('live-mark-mod'), 'Має бути позначка зміненого слова (підозріло -> пильно)');
+assert(liveHtml.includes('live-mark-ins'), 'Має бути позначка доданих слів (і мовив нове слово)');
+assert(liveHtml.includes('пильно'), 'Має містити змінене слово');
+assert(liveHtml.includes('нове'), 'Має містити нове додане слово');
+
+// Перевіряємо 100% символьну точність тексту (без тегів)
+const strippedLiveText = liveHtml.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+assert.strictEqual(strippedLiveText, "Корчмар пильно глянув на незнайомця і мовив нове слово", 'Текст бекдропу має 100% співпадати з текстом у полі редагування');
+
+const liveOrigHtml = liveEditSample.renderLiveOriginal();
+const strippedOrigText = liveOrigHtml.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+assert.strictEqual(strippedOrigText, "Корчмар підозріло глянув на незнайомця", 'Текст бекдропу оригіналу має 100% співпадати з оригіналом');
+console.log('✓ Жива підсвітка зберігає 100% символьне вирівнювання з полями введення.');
+
 console.log('\n========================================');
 console.log('ВСІ ТЕСТИ ДИФЕРЕНЦІАТОРА ПРОЙДЕНО УСПІШНО!');
 console.log('========================================');

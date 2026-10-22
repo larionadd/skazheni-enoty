@@ -333,6 +333,74 @@
     };
   }
 
+  /**
+   * Renders backdrop HTML for live editing field (Моя редакція).
+   * Highlights added words (green) and modified/substituted words (amber).
+   * Guarantees 100% exact text matching with editedText.
+   */
+  function renderLiveEdited(ops) {
+    if (!ops || !ops.length) return '';
+
+    let html = '';
+    for (let i = 0; i < ops.length; i++) {
+      const op = ops[i];
+      if (op.type === 'delete') {
+        continue;
+      }
+
+      const safeVal = escapeHtml(op.value);
+
+      if (op.type === 'equal') {
+        html += safeVal;
+      } else if (op.type === 'insert') {
+        const isPrevDelete = i > 0 && ops[i - 1].type === 'delete';
+        const isNextDelete = i < ops.length - 1 && ops[i + 1].type === 'delete';
+        const isReplacement = isPrevDelete || isNextDelete;
+
+        const markClass = isReplacement ? 'live-mark-mod' : 'live-mark-ins';
+        const markTitle = isReplacement ? 'Змінено' : 'Додано';
+
+        html += `<mark class="${markClass}" title="${markTitle}">${safeVal}</mark>`;
+      }
+    }
+
+    return html;
+  }
+
+  /**
+   * Renders backdrop HTML for original text field.
+   * Highlights deleted words (red) and modified words (amber).
+   * Guarantees 100% exact text matching with originalText.
+   */
+  function renderLiveOriginal(ops) {
+    if (!ops || !ops.length) return '';
+
+    let html = '';
+    for (let i = 0; i < ops.length; i++) {
+      const op = ops[i];
+      if (op.type === 'insert') {
+        continue;
+      }
+
+      const safeVal = escapeHtml(op.value);
+
+      if (op.type === 'equal') {
+        html += safeVal;
+      } else if (op.type === 'delete') {
+        const isPrevInsert = i > 0 && ops[i - 1].type === 'insert';
+        const isNextInsert = i < ops.length - 1 && ops[i + 1].type === 'insert';
+        const isReplacement = isPrevInsert || isNextInsert;
+
+        const markClass = isReplacement ? 'live-mark-mod' : 'live-mark-del';
+        const markTitle = isReplacement ? 'Змінено' : 'Вилучено';
+
+        html += `<mark class="${markClass}" title="${markTitle}">${safeVal}</mark>`;
+      }
+    }
+
+    return html;
+  }
+
   return {
     tokenize,
     diff: function (orig, edit) {
@@ -344,7 +412,9 @@
         ops,
         stats,
         renderInline: () => renderInlineDiff(ops),
-        renderSideBySide: () => renderSideBySideDiff(ops)
+        renderSideBySide: () => renderSideBySideDiff(ops),
+        renderLiveEdited: () => renderLiveEdited(ops),
+        renderLiveOriginal: () => renderLiveOriginal(ops)
       };
     },
     escapeHtml

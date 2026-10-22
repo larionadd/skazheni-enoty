@@ -140,6 +140,8 @@
 
     dom.txtOriginal = document.getElementById('txt-original');
     dom.txtEdited = document.getElementById('txt-edited');
+    dom.backdropOriginal = document.getElementById('backdrop-original');
+    dom.backdropEdited = document.getElementById('backdrop-edited');
 
     dom.origStats = document.getElementById('orig-stats');
     dom.editStats = document.getElementById('edit-stats');
@@ -394,8 +396,26 @@
       dom.compSimProgress.style.backgroundColor = simColor;
     }
 
+    // Оновлення живої підсвітки доданих та змінених фрагментів прямо під час друку (Live Backdrop)
+    if (dom.backdropEdited && typeof diffResult.renderLiveEdited === 'function') {
+      const liveHtmlEdited = diffResult.renderLiveEdited();
+      dom.backdropEdited.innerHTML = liveHtmlEdited + (editText.endsWith('\n') ? ' ' : '');
+      syncBackdropScroll(dom.txtEdited, dom.backdropEdited);
+    }
+    if (dom.backdropOriginal && typeof diffResult.renderLiveOriginal === 'function') {
+      const liveHtmlOriginal = diffResult.renderLiveOriginal();
+      dom.backdropOriginal.innerHTML = liveHtmlOriginal + (origText.endsWith('\n') ? ' ' : '');
+      syncBackdropScroll(dom.txtOriginal, dom.backdropOriginal);
+    }
+
     // Відображення режиму порівняння
     renderComparisonView(diffResult);
+  }
+
+  function syncBackdropScroll(textarea, backdrop) {
+    if (!textarea || !backdrop) return;
+    backdrop.scrollTop = textarea.scrollTop;
+    backdrop.scrollLeft = textarea.scrollLeft;
   }
 
   function renderComparisonView(diffResult) {
@@ -901,6 +921,8 @@
         dom.paneEdited.classList.remove('mobile-active-pane');
       }
     }
+    syncBackdropScroll(dom.txtEdited, dom.backdropEdited);
+    syncBackdropScroll(dom.txtOriginal, dom.backdropOriginal);
   }
 
   function applyTheme(theme) {
@@ -988,6 +1010,9 @@
     dom.txtOriginal.addEventListener('input', (e) => {
       handleOriginalInputChange(e.target.value);
     });
+    dom.txtOriginal.addEventListener('scroll', () => {
+      syncBackdropScroll(dom.txtOriginal, dom.backdropOriginal);
+    });
 
     // Кнопка вставити у оригінал
     dom.btnPasteOrig.addEventListener('click', async () => {
@@ -1053,6 +1078,10 @@
       state.undoTypingTimer = setTimeout(() => {
         recordUndoState(val);
       }, 400);
+    });
+
+    dom.txtEdited.addEventListener('scroll', () => {
+      syncBackdropScroll(dom.txtEdited, dom.backdropEdited);
     });
 
     // Гарячі клавіші для Undo / Redo
